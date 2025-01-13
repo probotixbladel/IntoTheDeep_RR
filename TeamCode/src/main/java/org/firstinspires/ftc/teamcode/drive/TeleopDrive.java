@@ -27,13 +27,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.drive;
 
+import com.acmerobotics.roadrunner.ftc.OverflowEncoder;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+//import com.acmerobotics.roadrunner.ftc.Encoder;
+//import com.acmerobotics.roadrunner.ftc.RawEncoder;
 import com.qualcomm.robotcore.util.ElapsedTime;
+//import com.acmerobotics.roadrunner.ftc.OverflowEncoder;
+
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 /*
  * This file contains an example of a Linear "OpMode".
@@ -63,8 +69,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Basic: Omni Linear OpMode", group="Linear OpMode")
-@Enabled
+@TeleOp(name="TeleopDrive", group="Linear OpMode")
+//@Disabled
 public class TeleopDrive extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
@@ -73,6 +79,9 @@ public class TeleopDrive extends LinearOpMode {
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
+    private DcMotor LiftMotor = null;
+    //private Encoder LiftEncoder = null;
+    private double LiftPos = 0;
 
     @Override
     public void runOpMode() {
@@ -83,6 +92,12 @@ public class TeleopDrive extends LinearOpMode {
         leftBackDrive  = hardwareMap.get(DcMotor.class, "wheelLeftRear");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "wheelRightFront");
         rightBackDrive = hardwareMap.get(DcMotor.class, "wheelRightRear");
+
+        LiftMotor = hardwareMap.get(DcMotor.class, "LiftMotor");
+
+        LiftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        //LiftEncoder new OverflowEncoder(new RawEncoder(LiftMotor));
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -135,6 +150,16 @@ public class TeleopDrive extends LinearOpMode {
                 rightBackPower  /= max;
             }
 
+            if (gamepad1.left_bumper == true) {
+                LiftMotor.setPower(0.25);
+            }
+            else if (gamepad1.right_bumper == true) {
+                LiftMotor.setPower(-0.25);
+            } else {
+                LiftMotor.setPower(0);
+            }
+            LiftPos = LiftMotor.getCurrentPosition();
+
             // This is test code:
             //
             // Uncomment the following code to test your motor directions.
@@ -162,6 +187,7 @@ public class TeleopDrive extends LinearOpMode {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+            telemetry.addData("lift possision: ", "%4.2f", LiftPos);
             telemetry.update();
         }
     }}
