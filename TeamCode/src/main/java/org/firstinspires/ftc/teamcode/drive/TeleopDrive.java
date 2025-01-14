@@ -28,16 +28,11 @@
  */
 
 package org.firstinspires.ftc.teamcode.drive;
-
-import com.acmerobotics.roadrunner.ftc.OverflowEncoder;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-//import com.acmerobotics.roadrunner.ftc.Encoder;
-//import com.acmerobotics.roadrunner.ftc.RawEncoder;
 import com.qualcomm.robotcore.util.ElapsedTime;
-//import com.acmerobotics.roadrunner.ftc.OverflowEncoder;
+
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
@@ -80,7 +75,7 @@ public class TeleopDrive extends LinearOpMode {
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
     private DcMotor LiftMotor = null;
-    //private Encoder LiftEncoder = null;
+    private double gearshift = 0.25;
     private double LiftPos = 0;
 
     @Override
@@ -95,7 +90,11 @@ public class TeleopDrive extends LinearOpMode {
 
         LiftMotor = hardwareMap.get(DcMotor.class, "LiftMotor");
 
-        LiftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        LiftMotor.setPower(0);
+        LiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        LiftMotor.setTargetPosition(0);
+        LiftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        LiftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         //LiftEncoder new OverflowEncoder(new RawEncoder(LiftMotor));
 
@@ -132,10 +131,10 @@ public class TeleopDrive extends LinearOpMode {
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
-            double leftFrontPower  = axial + lateral + yaw;
-            double rightFrontPower = axial - lateral - yaw;
-            double leftBackPower   = axial - lateral + yaw;
-            double rightBackPower  = axial + lateral - yaw;
+            double leftFrontPower  = (axial + lateral + yaw) * gearshift;
+            double rightFrontPower = (axial - lateral - yaw) * gearshift;
+            double leftBackPower   = (axial - lateral + yaw) * gearshift;
+            double rightBackPower  = (axial + lateral - yaw) * gearshift;
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
@@ -150,16 +149,32 @@ public class TeleopDrive extends LinearOpMode {
                 rightBackPower  /= max;
             }
 
-            if (gamepad1.left_bumper == true) {
-                LiftMotor.setPower(0.25);
+            if (gamepad1.dpad_up) {
+                LiftMotor.setTargetPosition(2600);
+                LiftMotor.setPower(0.4);
+            } else if (gamepad1.dpad_down) {
+                LiftMotor.setTargetPosition(0);
+                LiftMotor.setPower(0.4);
             }
-            else if (gamepad1.right_bumper == true) {
-                LiftMotor.setPower(-0.25);
-            } else {
-                LiftMotor.setPower(0);
-            }
-            LiftPos = LiftMotor.getCurrentPosition();
+            //if (gamepad1.left_bumper == true) {
+            //    LiftMotor.setPower(0.25);
+            //}
+            //else if (gamepad1.right_bumper == true) {
+            //    LiftMotor.setPower(-0.25);
+            //} else {
+            //    LiftMotor.setPower(0);
+            //}
+            //LiftPos = LiftMotor.getCurrentPosition();
 
+            if (gamepad1.a == true) {
+                gearshift = 0.25;
+            } else if (gamepad1.b == true) {
+                gearshift = 0.5;
+            } else if (gamepad1.x == true) {
+                gearshift = 0.75;
+            } else if (gamepad1.y == true) {
+                gearshift = 1.0;
+            }
             // This is test code:
             //
             // Uncomment the following code to test your motor directions.
