@@ -31,6 +31,8 @@ package org.firstinspires.ftc.teamcode.drive;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
@@ -75,7 +77,10 @@ public class TeleopDrive extends LinearOpMode {
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
     private DcMotor LiftMotor = null;
+    private DcMotor ArmMotor = null;
+    private Servo GrabServo = null;
     private double gearshift = 0.25;
+    private double turnspeed = 0.4;
     private double LiftPos = 0;
 
     @Override
@@ -89,13 +94,23 @@ public class TeleopDrive extends LinearOpMode {
         rightBackDrive = hardwareMap.get(DcMotor.class, "wheelRightRear");
 
         LiftMotor = hardwareMap.get(DcMotor.class, "LiftMotor");
+        ArmMotor = hardwareMap.get(DcMotor.class, "ArmMotor");
 
-        LiftMotor.setPower(0);
+        GrabServo = hardwareMap.get(Servo.class, "GrabServo");
+
+        LiftMotor.setPower(0.4);
         LiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         LiftMotor.setTargetPosition(0);
         LiftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         LiftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        ArmMotor.setPower(0.4);
+        ArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        ArmMotor.setTargetPosition(0);
+        ArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        ArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        GrabServo.setPosition(0.0);
         //LiftEncoder new OverflowEncoder(new RawEncoder(LiftMotor));
 
         // ########################################################################################
@@ -113,6 +128,8 @@ public class TeleopDrive extends LinearOpMode {
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
 
+        ArmMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -120,21 +137,22 @@ public class TeleopDrive extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
+        boolean LiftUp = false;
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             double max;
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-            double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-            double lateral =  gamepad1.left_stick_x;
-            double yaw     =  gamepad1.right_stick_x;
+            double axial   = -gamepad1.left_stick_y * gearshift;  // Note: pushing stick forward gives negative value
+            double lateral =  gamepad1.left_stick_x * gearshift;
+            double yaw     =  gamepad1.right_stick_x * turnspeed;
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
-            double leftFrontPower  = (axial + lateral + yaw) * gearshift;
-            double rightFrontPower = (axial - lateral - yaw) * gearshift;
-            double leftBackPower   = (axial - lateral + yaw) * gearshift;
-            double rightBackPower  = (axial + lateral - yaw) * gearshift;
+            double leftFrontPower  = (axial + lateral + yaw);// * gearshift;
+            double rightFrontPower = (axial - lateral - yaw);// * gearshift;
+            double leftBackPower   = (axial - lateral + yaw);// * gearshift;
+            double rightBackPower  = (axial + lateral - yaw);// * gearshift;
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
@@ -149,12 +167,37 @@ public class TeleopDrive extends LinearOpMode {
                 rightBackPower  /= max;
             }
 
-            if (gamepad1.dpad_up) {
-                LiftMotor.setTargetPosition(2600);
-                LiftMotor.setPower(0.4);
-            } else if (gamepad1.dpad_down) {
-                LiftMotor.setTargetPosition(0);
-                LiftMotor.setPower(0.4);
+            //LIFT
+            if (gamepad2.dpad_up) {
+                LiftMotor.setTargetPosition(2300);   //2500
+                LiftMotor.setPower(1);
+                LiftUp = true;
+            } else if (gamepad2.dpad_down) {
+                LiftMotor.setTargetPosition(300);
+                LiftMotor.setPower(0.5);
+                LiftUp = false;
+            }
+
+            //ARMMOTOR
+            if(LiftUp) {
+                if (gamepad2.left_trigger == 1) {
+                    ArmMotor.setTargetPosition(0);
+                    ArmMotor.setPower(0.12);
+                } else if (gamepad2.right_trigger == 1) {
+                    ArmMotor.setTargetPosition(235);
+                    ArmMotor.setPower(0.2);
+                } else if (gamepad2.a) {
+                    ArmMotor.setTargetPosition(180);
+                    ArmMotor.setPower(0.3);
+                }
+            }
+            LiftPos = ArmMotor.getCurrentPosition();
+
+            //grabber
+            if (gamepad2.left_bumper) {
+                GrabServo.setPosition(0.0);
+            } else if (gamepad2.right_bumper) {
+                GrabServo.setPosition(0.85);
             }
             //if (gamepad1.left_bumper == true) {
             //    LiftMotor.setPower(0.25);
@@ -168,12 +211,16 @@ public class TeleopDrive extends LinearOpMode {
 
             if (gamepad1.a == true) {
                 gearshift = 0.25;
+                turnspeed = 0.4;
             } else if (gamepad1.b == true) {
                 gearshift = 0.5;
+                turnspeed = 0.65;
             } else if (gamepad1.x == true) {
                 gearshift = 0.75;
+                turnspeed = 0.8;
             } else if (gamepad1.y == true) {
-                gearshift = 1.0;
+                gearshift = 0.9;
+                turnspeed = 1.0;
             }
             // This is test code:
             //
