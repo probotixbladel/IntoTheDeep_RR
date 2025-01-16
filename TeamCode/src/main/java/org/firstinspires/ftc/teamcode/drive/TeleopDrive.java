@@ -34,6 +34,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import java.lang.Math;
 
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
@@ -81,7 +82,12 @@ public class TeleopDrive extends LinearOpMode {
     private Servo GrabServo = null;
     private double gearshift = 0.25;
     private double turnspeed = 0.4;
-    private double LiftPos = 0;
+    //private double LiftPos = 0;
+
+    //(x) -> Math.abs(x)**2.3 * Math.signum(x);
+    private double controller(double x) {
+        return (Math.pow(Math.abs(x), 2.3) * Math.signum(x));
+    }
 
     @Override
     public void runOpMode() {
@@ -111,6 +117,8 @@ public class TeleopDrive extends LinearOpMode {
         ArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         GrabServo.setPosition(0.0);
+
+        
         //LiftEncoder new OverflowEncoder(new RawEncoder(LiftMotor));
 
         // ########################################################################################
@@ -138,14 +146,21 @@ public class TeleopDrive extends LinearOpMode {
         runtime.reset();
 
         boolean LiftUp = false;
+        boolean ArmOut = false;
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             double max;
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-            double axial   = -gamepad1.left_stick_y * gearshift;  // Note: pushing stick forward gives negative value
-            double lateral =  gamepad1.left_stick_x * gearshift;
-            double yaw     =  gamepad1.right_stick_x * turnspeed;
+            double axial   = -gamepad1.left_stick_y * gearshift; ; // Note: pushing stick forward gives negative value
+            double lateral =  gamepad1.left_stick_x * gearshift;  
+            double yaw     =  gamepad1.right_stick_x * turnspeed; 
+            
+            /*
+            double axial   = -controller(gamepad1.left_stick_y) * gearshift; // Note: pushing stick forward gives negative value
+            double lateral =  controller(gamepad1.left_stick_x) * gearshift;             
+            double yaw     =  controller(gamepad1.right_stick_x) * turnspeed;
+            */
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
@@ -172,7 +187,7 @@ public class TeleopDrive extends LinearOpMode {
                 LiftMotor.setTargetPosition(2300);   //2500
                 LiftMotor.setPower(1);
                 LiftUp = true;
-            } else if (gamepad2.dpad_down) {
+            } else if (gamepad2.dpad_down ) {//& !ArmOut) {
                 LiftMotor.setTargetPosition(300);
                 LiftMotor.setPower(0.5);
                 LiftUp = false;
@@ -183,15 +198,18 @@ public class TeleopDrive extends LinearOpMode {
                 if (gamepad2.left_trigger == 1) {
                     ArmMotor.setTargetPosition(0);
                     ArmMotor.setPower(0.12);
+                    //ArmOut = false;
                 } else if (gamepad2.right_trigger == 1) {
                     ArmMotor.setTargetPosition(235);
                     ArmMotor.setPower(0.2);
+                    //ArmOut = true;
                 } else if (gamepad2.a) {
                     ArmMotor.setTargetPosition(180);
                     ArmMotor.setPower(0.3);
+                    //ArmOut = true;
                 }
             }
-            LiftPos = ArmMotor.getCurrentPosition();
+            //LiftPos = ArmMotor.getCurrentPosition();
 
             //grabber
             if (gamepad2.left_bumper) {
@@ -247,9 +265,12 @@ public class TeleopDrive extends LinearOpMode {
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
+            /*
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.addData("lift possision: ", "%4.2f", LiftPos);
+            */
             telemetry.update();
         }
-    }}
+    }
+}
