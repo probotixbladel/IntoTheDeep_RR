@@ -84,9 +84,8 @@ public class TeleopDrive extends LinearOpMode {
     private double turnspeed = 0.4;
     //private double LiftPos = 0;
 
-    //(x) -> Math.abs(x)**2.3 * Math.signum(x);
     private double controller(double x) {
-        return (Math.pow(Math.abs(x), 2.3) * Math.signum(x));
+        return (Math.pow(Math.abs(x) * 0.75 + 0.25, 2.3) * Math.signum(x));
     }
 
     @Override
@@ -152,15 +151,16 @@ public class TeleopDrive extends LinearOpMode {
             double max;
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
+            /*
             double axial   = -gamepad1.left_stick_y * gearshift; ; // Note: pushing stick forward gives negative value
             double lateral =  gamepad1.left_stick_x * gearshift;  
             double yaw     =  gamepad1.right_stick_x * turnspeed; 
-            
-            /*
+            */
+
             double axial   = -controller(gamepad1.left_stick_y) * gearshift; // Note: pushing stick forward gives negative value
             double lateral =  controller(gamepad1.left_stick_x) * gearshift;             
             double yaw     =  controller(gamepad1.right_stick_x) * turnspeed;
-            */
+
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
@@ -184,12 +184,12 @@ public class TeleopDrive extends LinearOpMode {
 
             //LIFT
             if (gamepad2.dpad_up) {
-                LiftMotor.setTargetPosition(2300);   //2500
+                LiftMotor.setTargetPosition(2150);   //2500
                 LiftMotor.setPower(1);
                 LiftUp = true;
-            } else if (gamepad2.dpad_down ) {//& !ArmOut) {
+            } else if (gamepad2.dpad_down && !ArmOut) {
                 LiftMotor.setTargetPosition(300);
-                LiftMotor.setPower(0.5);
+                LiftMotor.setPower(0.4);
                 LiftUp = false;
             }
 
@@ -198,15 +198,15 @@ public class TeleopDrive extends LinearOpMode {
                 if (gamepad2.left_trigger == 1) {
                     ArmMotor.setTargetPosition(0);
                     ArmMotor.setPower(0.12);
-                    //ArmOut = false;
+                    ArmOut = false;
                 } else if (gamepad2.right_trigger == 1) {
                     ArmMotor.setTargetPosition(235);
                     ArmMotor.setPower(0.2);
-                    //ArmOut = true;
+                    ArmOut = true;
                 } else if (gamepad2.a) {
                     ArmMotor.setTargetPosition(180);
                     ArmMotor.setPower(0.3);
-                    //ArmOut = true;
+                    ArmOut = true;
                 }
             }
             //LiftPos = ArmMotor.getCurrentPosition();
