@@ -13,18 +13,19 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 public final class AutoClose extends LinearOpMode {
     @Override
     public void runOpMode() {
-        Pose2d beginPose = new Pose2d(0, 0, 0);
+        Pose2d beginPose = new Pose2d(-12.72, 62.54, Math.toRadians(-90.00));
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
         waitForStart();
 
         Actions.runBlocking(
                 drive.actionBuilder(beginPose)
-                        .strafeTo(new Vector2d(-12, -48))
-                        .waitSeconds(2)
-                        //.splineTo(new Vector2d(0, 30), Math.PI)
+                        .splineToConstantHeading(new Vector2d(0, 36), Math.toRadians(-90.00))
                         .build());
 
-        }
+
+
+
+    }
     }
 
