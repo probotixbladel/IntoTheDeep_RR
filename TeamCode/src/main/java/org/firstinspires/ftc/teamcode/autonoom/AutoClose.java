@@ -21,6 +21,7 @@ public final class AutoClose extends LinearOpMode {
         Actions.runBlocking(
                 drive.actionBuilder(beginPose)
                         .splineToConstantHeading(new Vector2d(0, 36), Math.toRadians(-90.00))
+                        .splineToConstantHeading(new Vector2d(-48.38, 38.78), Math.toRadians(-90))
                         .build());
 
 
