@@ -20,7 +20,7 @@ public final class AutoClose extends LinearOpMode {
 
         Actions.runBlocking(
                 drive.actionBuilder(beginPose)
-                        .strafeTo(new Vector2d(0, -60))
+                        .strafeTo(new Vector2d(-12, -48))
                         .waitSeconds(2)
                         //.splineTo(new Vector2d(0, 30), Math.PI)
                         .build());

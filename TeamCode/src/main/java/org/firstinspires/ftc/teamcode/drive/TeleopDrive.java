@@ -184,8 +184,12 @@ public class TeleopDrive extends LinearOpMode {
 
             //LIFT
             if (gamepad2.dpad_up) {
-                LiftMotor.setTargetPosition(2150);   //2500
-                LiftMotor.setPower(1);
+                LiftMotor.setTargetPosition(2150);   //2600
+                LiftMotor.setPower(0.8);
+                LiftUp = true;
+            } else if (gamepad2.dpad_right) {
+                LiftMotor.setTargetPosition(1300);
+                LiftMotor.setPower(0.6);
                 LiftUp = true;
             } else if (gamepad2.dpad_down && !ArmOut) {
                 LiftMotor.setTargetPosition(300);
@@ -200,12 +204,12 @@ public class TeleopDrive extends LinearOpMode {
                     ArmMotor.setPower(0.12);
                     ArmOut = false;
                 } else if (gamepad2.right_trigger == 1) {
-                    ArmMotor.setTargetPosition(235);
-                    ArmMotor.setPower(0.2);
+                    ArmMotor.setTargetPosition(240);
+                    ArmMotor.setPower(0.4);
                     ArmOut = true;
                 } else if (gamepad2.a) {
-                    ArmMotor.setTargetPosition(180);
-                    ArmMotor.setPower(0.3);
+                    ArmMotor.setTargetPosition(195);
+                    ArmMotor.setPower(0.45);
                     ArmOut = true;
                 }
             }

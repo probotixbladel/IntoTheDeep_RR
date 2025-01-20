@@ -21,7 +21,7 @@ public final class AutoFar extends LinearOpMode {
         Actions.runBlocking(
                 drive.actionBuilder(beginPose)
                         .waitSeconds(10)
-                        .strafeTo(new Vector2d(-2, -96))
+                        .strafeTo(new Vector2d(-10, -96))
 
                         .build());
 

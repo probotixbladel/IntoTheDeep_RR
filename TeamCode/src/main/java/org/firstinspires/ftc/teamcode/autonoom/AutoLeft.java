@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-
+@Disabled
 @Autonomous(name = "AutoLeft", group = "Autonomous")
 public final class AutoLeft extends LinearOpMode {
     @Override
@@ -26,7 +26,7 @@ public final class AutoLeft extends LinearOpMode {
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
         waitForStart();
-
+        /*
         Actions.runBlocking(new SequentialAction(
                 drive.actionBuilder(beginPose)
                         .waitSeconds(5)
@@ -34,7 +34,7 @@ public final class AutoLeft extends LinearOpMode {
                         .strafeTo(new Vector2d(-40, -60))
 
                         .build()));
-
+        */
     }
 }
 
