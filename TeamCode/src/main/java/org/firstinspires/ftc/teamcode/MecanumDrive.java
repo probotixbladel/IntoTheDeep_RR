@@ -45,6 +45,7 @@ import org.firstinspires.ftc.teamcode.messages.DriveCommandMessage;
 import org.firstinspires.ftc.teamcode.messages.MecanumCommandMessage;
 import org.firstinspires.ftc.teamcode.messages.MecanumLocalizerInputsMessage;
 import org.firstinspires.ftc.teamcode.messages.PoseMessage;
+//import org.firstinspires.ftc.teamcode.ThreeDeadWheelLocalizer;
 
 import java.lang.Math;
 import java.util.Arrays;
@@ -63,31 +64,34 @@ public final class MecanumDrive {
                 RevHubOrientationOnRobot.UsbFacingDirection.RIGHT;
 
         // drive model parameters (before controlhub replacement: 72,6/1635,5)
-        public double inPerTick = 96.0 / 4040.0; //real dist / ticks recorded
-        public double lateralInPerTick = 96.0 / 5616.0;
-        public double trackWidthTicks =  1018.6666666;
+        public double inPerTick = 5.768884081485487650982513070128e-4; //real dist / ticks recorded
+        public double lateralInPerTick = 0.0004490204240816493;
+        public double trackWidthTicks =  19204.61385575749;
         // feedforward parameters (in tick units)
-        public double kS = 1.2854147733;
-        public double kV = 0.0043627664;
-        public double kA = 0.001;
+
+        //kV: 0.00011675894875938477, kS: 0.9690724762476273
+        //kV: 0.00011169892202373982, kS: 1.1280915358377426
+        public double kS = 1.1280915358377426;
+        public double kV = 0.00011169892202373982;
+        public double kA = 0.000001;
 
         // path profile parameters (in inches)
-        public double maxWheelVel = 50;
+        public double maxWheelVel = 40;
         public double minProfileAccel = -30;
-        public double maxProfileAccel = 50;
+        public double maxProfileAccel = 40;
 
         // turn profile parameters (in radians)
         public double maxAngVel = Math.PI; // shared with path
         public double maxAngAccel = Math.PI;
 
         // path controller gains
-        public double axialGain = 0.0;
-        public double lateralGain = -0.05;
-        public double headingGain = 0.0; // shared with turn
+        public double axialGain = 3.0;
+        public double lateralGain = 3.0;
+        public double headingGain = 6.0; // shared with turn
 
         public double axialVelGain = 0.0;
         public double lateralVelGain = 0.0;
-        public double headingVelGain = -0.1; // shared with turn
+        public double headingVelGain = 0.0; // shared with turn
     }
 
     public static Params PARAMS = new Params();
@@ -241,7 +245,8 @@ public final class MecanumDrive {
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
 
-        localizer = new DriveLocalizer();
+        localizer = new ThreeDeadWheelLocalizer(hardwareMap, MecanumDrive.PARAMS.inPerTick);
+        //localizer = new DriveLocalizer();
 
         FlightRecorder.write("MECANUM_PARAMS", PARAMS);
     }

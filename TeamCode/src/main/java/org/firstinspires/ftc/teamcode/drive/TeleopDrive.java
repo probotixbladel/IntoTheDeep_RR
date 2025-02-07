@@ -197,6 +197,12 @@ public class TeleopDrive extends LinearOpMode {
                 LiftUp = false;
             }
 
+//            while (gamepad2.left_bumper && (LiftMotor.getCurrentPosition()<2150)) {
+//            LiftMotor.setPower(0.5);
+//            }
+
+
+
             //ARMMOTOR
             if(LiftUp) {
                 if (gamepad2.left_trigger == 1) {
@@ -221,15 +227,18 @@ public class TeleopDrive extends LinearOpMode {
             } else if (gamepad2.right_bumper) {
                 GrabServo.setPosition(0.85);
             }
-            //if (gamepad1.left_bumper == true) {
-            //    LiftMotor.setPower(0.25);
-            //}
-            //else if (gamepad1.right_bumper == true) {
-            //    LiftMotor.setPower(-0.25);
-            //} else {
-            //    LiftMotor.setPower(0);
-            //}
+
+            //Controls for testing lift only!!! (Marc/Damian)
+//            if (gamepad1.left_bumper == true) {
+//                LiftMotor.setPower(0.25);
+//            }
+//            else if (gamepad1.right_bumper == true) {
+//                LiftMotor.setPower(-0.25);
+//            } else {
+//                LiftMotor.setPower(0);
+//            }
             //LiftPos = LiftMotor.getCurrentPosition();
+            //END TESTING CODE HERE
 
             if (gamepad1.a == true) {
                 gearshift = 0.25;
