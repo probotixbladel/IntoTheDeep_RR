@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
@@ -107,13 +108,43 @@ public final class AutoFar extends LinearOpMode {
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
         waitForStart();
-       Lift lift = new Lift(hardwareMap);
+        Lift lift = new Lift(hardwareMap);
+        /*
         Actions.runBlocking(lift.liftUp());
         Actions.runBlocking(
                 drive.actionBuilder(beginPose)
                         .splineToConstantHeading(new Vector2d(30.00, 8.48), Math.toRadians(0.00))
                         .build());
+        */
+
+        Actions.runBlocking(new ParallelAction(
+                lift.liftUp(),
+                drive.actionBuilder(beginPose)
+                        .splineToConstantHeading(new Vector2d(30.00, 8.48), Math.toRadians(0.00))
+                        .build()
+                )
+        );
         Actions.runBlocking(lift.liftDown());
+        Actions.runBlocking(drive.actionBuilder(new Pose2d(30.00, 8.48, 0.00))
+                        .splineToConstantHeading(new Vector2d(23.00, 8.48), Math.toRadians(0.00))
+                .splineToConstantHeading(new Vector2d(23.86, -8.93), Math.toRadians(0.00))//-88.39))
+                .splineToConstantHeading(new Vector2d(43.50, -25.00), Math.toRadians(0.00))
+                        .splineToConstantHeading(new Vector2d(43.50, -34.16), Math.toRadians(0.00))
+                        .splineToConstantHeading(new Vector2d(8.50, -35.00), Math.toRadians(0.00))
+
+                        .splineToConstantHeading(new Vector2d(43.50, -34.16), Math.toRadians(0.00))
+                        .splineToConstantHeading(new Vector2d(43.50, -45.00), Math.toRadians(0.00))
+                        .splineToConstantHeading(new Vector2d(8.50, -45.00), Math.toRadians(0.00))
+
+                        .splineToConstantHeading(new Vector2d(43.50, -45.00), Math.toRadians(0.00))
+                        .splineToConstantHeading(new Vector2d(43.50, -53.00), Math.toRadians(0.00))
+                        .splineToConstantHeading(new Vector2d(8.50, -53.00), Math.toRadians(0.00))
+
+
+                        .build()
+                );
+
+
 
 
     }
