@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.autonoom;
 
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.VelConstraint;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -46,7 +47,7 @@ public final class AutoFar extends LinearOpMode {
         public Lift(HardwareMap hardwareMap) {
             lift = hardwareMap.get(DcMotorEx.class, "LiftMotor");
             lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            lift.setDirection(DcMotorSimple.Direction.FORWARD);
+            lift.setDirection(DcMotorSimple.Direction.REVERSE);
         }
 
         public class LiftUp implements Action {
@@ -125,20 +126,31 @@ public final class AutoFar extends LinearOpMode {
                 )
         );
         Actions.runBlocking(lift.liftDown());
-        Actions.runBlocking(drive.actionBuilder(new Pose2d(30.00, 8.48, 0.00))
-                        .splineToConstantHeading(new Vector2d(23.00, 8.48), Math.toRadians(0.00))
-                .splineToConstantHeading(new Vector2d(23.86, -8.93), Math.toRadians(0.00))//-88.39))
-                .splineToConstantHeading(new Vector2d(43.50, -25.00), Math.toRadians(0.00))
-                        .splineToConstantHeading(new Vector2d(43.50, -34.16), Math.toRadians(0.00))
-                        .splineToConstantHeading(new Vector2d(8.50, -35.00), Math.toRadians(0.00))
+        Actions.runBlocking(drive.actionBuilder(new Pose2d(30.00, 8.48, 0.00) )
+                        //.lineToXConstantHeading(23)
+                        .strafeToConstantHeading(new Vector2d(23.00, 8.48))
+                        .splineToConstantHeading(new Vector2d(23.86, -8.93), Math.toRadians(0.00))//-88.39))
 
-                        .splineToConstantHeading(new Vector2d(43.50, -34.16), Math.toRadians(0.00))
-                        .splineToConstantHeading(new Vector2d(43.50, -45.00), Math.toRadians(0.00))
-                        .splineToConstantHeading(new Vector2d(8.50, -45.00), Math.toRadians(0.00))
+                        .splineToConstantHeading(new Vector2d(45.00, -25.00), Math.toRadians(0.00))
 
-                        .splineToConstantHeading(new Vector2d(43.50, -45.00), Math.toRadians(0.00))
-                        .splineToConstantHeading(new Vector2d(43.50, -53.00), Math.toRadians(0.00))
-                        .splineToConstantHeading(new Vector2d(8.50, -53.00), Math.toRadians(0.00))
+                        //.lineToYConstantHeading( -35.00)
+                        .strafeToConstantHeading(new Vector2d(45.00, -34.16))
+                        //.lineToXConstantHeading( 8.50)
+                        .strafeToConstantHeading(new Vector2d(8.50, -35.00))
+
+                        //.strafeToConstantHeading( 43.50)
+                        .strafeToConstantHeading(new Vector2d(45.00, -34.16))
+                        //.lineToYConstantHeading( -45.00)
+                        .strafeToConstantHeading(new Vector2d(45.00, -45.00))
+                        //.lineToXConstantHeading( 8.50)
+                        .strafeToConstantHeading(new Vector2d(8.50, -45.00))
+
+                        //.lineToXConstantHeading( 43.50)
+                        .strafeToConstantHeading(new Vector2d(45.00, -45.00))
+                        //.lineToYConstantHeading( -53.00)
+                        .strafeToConstantHeading(new Vector2d(43.50, -53.00))
+                        //.lineToXConstantHeading( 8.50)
+                        .strafeToConstantHeading(new Vector2d(8.50, -53.00))
 
 
                         .build()
