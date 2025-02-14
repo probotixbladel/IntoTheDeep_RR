@@ -33,8 +33,11 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
 import java.lang.Math;
+
 
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
@@ -79,14 +82,21 @@ public class TeleopDrive extends LinearOpMode {
     private DcMotor rightBackDrive = null;
     private DcMotor LiftMotor = null;
     private DcMotor ArmMotor = null;
-    private Servo GrabServo = null;
+    private CRServo GrabServo = null;
     private Servo TiltServo = null;
     private double gearshift = 0.25;
     private double turnspeed = 0.4;
     //private double LiftPos = 0;
     private double armpos = 0;
     private boolean srgrab = false;
-
+    private int flipUp = 2;
+    private boolean init = false;
+    private double prevpow = 0.0;
+    private int prevpos = 0;
+    private ElapsedTime upTime = new ElapsedTime();
+    private boolean trans = false;
+    private boolean transnow = false;
+    private double prevarmpos = 0;
     private double controller(double x) {
         return (Math.pow(Math.abs(x) * 0.75 + 0.25, 2.3) * Math.signum(x));
     }
@@ -104,19 +114,20 @@ public class TeleopDrive extends LinearOpMode {
         LiftMotor = hardwareMap.get(DcMotor.class, "LiftMotor");
         ArmMotor = hardwareMap.get(DcMotor.class, "ArmMotor");
 
-        GrabServo = hardwareMap.get(Servo.class, "GrabServo");
-        TiltServo = hardwareMap.get(Servo.class, "TillServo");
+        GrabServo = hardwareMap.get(CRServo.class, "GrabServo");
+        TiltServo = hardwareMap.get(Servo.class, "TiltServo");
 
+        TiltServo.setPosition(0.9);
         LiftMotor.setPower(0.4);
         LiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        GrabServo.setPosition(0.0);
+        GrabServo.setPower(0.0);
         LiftMotor.setTargetPosition(0);
         LiftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         LiftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        ArmMotor.setTargetPosition(0);
         ArmMotor.setPower(1);
         ArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        ArmMotor.setTargetPosition(0);
         ArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         ArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -150,6 +161,10 @@ public class TeleopDrive extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            if (!init){
+                init = true;
+                LiftMotor.setTargetPosition(200);
+            }
             double max;
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
@@ -186,14 +201,14 @@ public class TeleopDrive extends LinearOpMode {
 
             //LIFT
             if (gamepad2.dpad_up) {
-                LiftMotor.setTargetPosition(2150);   //2600
+                LiftMotor.setTargetPosition(2050);   //2600
                 LiftMotor.setPower(0.8);
             } else if (gamepad2.dpad_right) {
-                LiftMotor.setTargetPosition(1300);
-                LiftMotor.setPower(0.6);
+                LiftMotor.setTargetPosition(1200);
+                LiftMotor.setPower(0.7);
             } else if (gamepad2.dpad_down) {
-                LiftMotor.setTargetPosition(300);
-                LiftMotor.setPower(0.4);
+                LiftMotor.setTargetPosition(200);
+                LiftMotor.setPower(0.38);
             }
 
 //            while (gamepad2.left_bumper && (LiftMotor.getCurrentPosition()<2150)) {
@@ -203,12 +218,91 @@ public class TeleopDrive extends LinearOpMode {
 
 
             //ARMMOTOR
-
-            armpos += Math.pow(gamepad2.right_trigger, 3) * 5 - Math.pow(gamepad2.left_trigger, 3) * 5;
+            transnow = false;
+            prevarmpos = armpos;
+            armpos += Math.pow(gamepad2.right_trigger, 3) * 6 - Math.pow(gamepad2.left_trigger, 3) * 6;
 
             if (armpos > 485) {armpos = 485;}
-            if (armpos < 0)   {armpos = 0;}
+            if (flipUp == 2) {
+                if (armpos < 0)   {armpos = 0;}
+            } else {
+                if (armpos < 200) {armpos = 200;}
+            }
+
+            if (armpos > 485) {armpos = 485;}
+            if (5 < armpos && armpos < 105){
+                transnow = true;
+            }
+            if (5 < armpos && armpos < 95) {
+                transnow = true;
+                if (LiftMotor.getCurrentPosition() > 250 && LiftMotor.getTargetPosition() > 250) {
+
+                } else {
+                    if (LiftMotor.getPower() != 1.0) {prevpow = LiftMotor.getPower();}
+                    if (LiftMotor.getTargetPosition() != 300) {prevpos = LiftMotor.getTargetPosition();}
+                    LiftMotor.setTargetPosition(300);
+                    LiftMotor.setPower(1);
+                    trans = true;
+                    armpos = prevarmpos;
+                }
+            }
+
+
+
+
+            /*
+            if (flipUp == 2 && LiftMotor.getCurrentPosition() > 280 && LiftMotor.getTargetPosition() > 250) {
+                if (armpos < 0) {armpos = 0;}
+
+            } else if (flipUp == 2 && armpos > prevarmpos && armpos < 200) {
+                if (LiftMotor.getPower() != 1.0) {prevpow = LiftMotor.getPower();}
+                if (LiftMotor.getTargetPosition() != 300) {prevpos = LiftMotor.getTargetPosition();}
+                LiftMotor.setTargetPosition(300);
+                LiftMotor.setPower(1);
+                trans = true;
+                transnow = true;
+                armpos = prevarmpos;
+
+            } else if (flipUp != 2&& armpos < 200) {
+                transnow = true;
+                if (LiftMotor.getTargetPosition() > 250 && LiftMotor.getCurrentPosition() > 280) {
+
+                } else  {
+                    if (LiftMotor.getPower() != 1.0) {prevpow = LiftMotor.getPower();}
+                    if (LiftMotor.getTargetPosition() != 300) {prevpos = LiftMotor.getTargetPosition();}
+                    LiftMotor.setTargetPosition(300);
+                    LiftMotor.setPower(1);
+                    trans = true;
+                    armpos = prevarmpos;
+                    if (armpos < 200) {armpos = 200;}
+                }
+            } else {
+                if (armpos < 200 && flipUp != 2) {armpos = 200;}
+            }
+            */
+
+
+            if (trans && !transnow) {
+                LiftMotor.setPower(prevpow);
+                LiftMotor.setTargetPosition(prevpos);
+                trans = false;
+            }
+
             ArmMotor.setTargetPosition((int)armpos);
+
+            //TiltServo
+            if (gamepad2.a) {
+                TiltServo.setPosition(0.20);
+                flipUp = 0;
+            } else if (gamepad2.b) {
+                TiltServo.setPosition(0.5);
+                flipUp = 1;
+            } else if (gamepad2.y) {
+                TiltServo.setPosition(0.90);
+                flipUp = 2;
+                upTime.reset();
+            }
+
             /*
             if (gamepad2.left_trigger == 1) {
                 ArmMotor.setTargetPosition(0);
@@ -224,9 +318,15 @@ public class TeleopDrive extends LinearOpMode {
 
             //grabber
             if (gamepad2.left_bumper) {
-                GrabServo.setPosition(0.0);
-            } else if (gamepad2.right_bumper) {
-                GrabServo.setPosition(0.85);
+                GrabServo.setPower(1);
+                GrabServo.setDirection(DcMotorSimple.Direction.REVERSE);
+                srgrab = false;
+            } else if (gamepad2.right_bumper || srgrab) {
+                GrabServo.setPower(1);
+                GrabServo.setDirection(DcMotorSimple.Direction.FORWARD);
+                srgrab = true;
+            } else {
+                GrabServo.setPower(0);
             }
 
             //Controls for testing lift only!!! (Marc/Damian)
