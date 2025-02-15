@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.MinMax;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Pose2dDual;
 import com.acmerobotics.roadrunner.PosePath;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.VelConstraint;
 import com.acmerobotics.roadrunner.AccelConstraint;
@@ -28,6 +29,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.Time;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 
@@ -74,7 +76,7 @@ public final class AutoFar extends LinearOpMode {
 
                 double pos = lift.getCurrentPosition();
                 packet.put("liftPos", pos);
-                if (pos < 2150.0) {
+                if (pos < 2050.0) {
                     return true;
                 } else {
                     lift.setPower(0);
@@ -86,6 +88,29 @@ public final class AutoFar extends LinearOpMode {
             return new LiftUp();
         }
 
+        public class LiftPickUp implements Action {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    lift.setPower(-0.8);
+                    initialized = true;
+                }
+
+                double pos = lift.getCurrentPosition();
+                packet.put("liftPos", pos);
+                if (pos > 500.0) {
+                    return true;
+                } else {
+                    lift.setPower(0);
+                    return false;
+                }
+            }
+        }
+        public Action liftPickUp() {
+            return new LiftPickUp();
+        }
         public class LiftDown implements Action {
             private boolean initialized = false;
 
@@ -98,7 +123,7 @@ public final class AutoFar extends LinearOpMode {
 
                 double pos = lift.getCurrentPosition();
                 packet.put("liftPos", pos);
-                if (pos > 0.0) {
+                if (pos > 5.0) {
                     return true;
                 } else {
                     lift.setPower(0);
@@ -130,58 +155,78 @@ public final class AutoFar extends LinearOpMode {
                         .splineToConstantHeading(new Vector2d(30.00, 8.48), Math.toRadians(0.00))
                         .build());
         */
-        VelConstraint vel = new VelConstraint() {
+        VelConstraint vels = new VelConstraint() {
             @Override
             public double maxRobotVel(@NonNull Pose2dDual<Arclength> pose2dDual, @NonNull PosePath posePath, double v) {
-                return 50;
+                return 15;
+            }
+        };
+        VelConstraint velp = new VelConstraint() {
+            @Override
+            public double maxRobotVel(@NonNull Pose2dDual<Arclength> pose2dDual, @NonNull PosePath posePath, double v) {
+                return 55;
             }
         };
         AccelConstraint acc = new AccelConstraint() {
             @NonNull
             @Override
             public MinMax minMaxProfileAccel(@NonNull Pose2dDual<Arclength> pose2dDual, @NonNull PosePath posePath, double v) {
-                return new MinMax(-50,50);
+                return new MinMax(-55,55);
             }
         };
 
         Actions.runBlocking(new ParallelAction(
                 lift.liftUp(),
                 drive.actionBuilder(beginPose)
-                        .splineToConstantHeading(new Vector2d(30.00, 8.48), Math.toRadians(0.00))
+                        .splineToConstantHeading(new Vector2d(29.50, 8.48), Math.toRadians(0.00))
                         .build()
                 )
         );
-        Actions.runBlocking(lift.liftDown());
+
+        Actions.runBlocking(lift.liftPickUp());
+        /*
         Actions.runBlocking(drive.actionBuilder(new Pose2d(30.00, 8.48, 0.00) )
-                        //.lineToXConstantHeading(23)
+                .strafeToConstantHeading(new Vector2d(23.00, 8.48))
+                .splineTo(new Vector2d(16, -16), Math.toRadians(180.00))
+                .strafeToConstantHeading(new Vector2d(8, -16.0), vels)
+                .build()
+        );
+        Actions.runBlocking(new ParallelAction(
+                        lift.liftUp(),
+                        new SequentialAction( new SleepAction(0.2),
+                            drive.actionBuilder(beginPose)
+                                    .strafeToConstantHeading(new Vector2d(8, -16.0), vels)
+                                    .splineTo(new Vector2d(23.00, 8.48), Math.toRadians(0.00))
+                                    .strafeToConstantHeading(new Vector2d(30.00, 8.48), vels)
+                                    .build()
+                        )
+                )
+        );
+
+         */
+
+
+
+        Actions.runBlocking(drive.actionBuilder(new Pose2d(30.00, 8.48, 0.00) )
                         .strafeToConstantHeading(new Vector2d(23.00, 8.48))
-                        .splineToConstantHeading(new Vector2d(23.86, -8.93), Math.toRadians(0.00))//-88.39))
+                        .splineToConstantHeading(new Vector2d(23.86, -24.00), Math.toRadians(0.00))//-88.39))
 
-                        .splineToConstantHeading(new Vector2d(45.00, -25.00), Math.toRadians(0.00))
+                        .splineToConstantHeading(new Vector2d(46.00, -25.00), Math.toRadians(0.00))
 
-                        //.lineToYConstantHeading( -35.00)
-                        .strafeToConstantHeading(new Vector2d(45.00, -34.16))
-                        //.lineToXConstantHeading( 8.50)
-                        .strafeToConstantHeading(new Vector2d(8.50, -35.00), vel, acc)
+                        .strafeToConstantHeading(new Vector2d(48.00, -34.16))
+                        .strafeToConstantHeading(new Vector2d(8.50, -35.00), velp, acc)
 
-                        //.strafeToConstantHeading( 43.50)
-                        .strafeToConstantHeading(new Vector2d(45.00, -34.16))
-                        //.lineToYConstantHeading( -45.00)
-                        .strafeToConstantHeading(new Vector2d(45.00, -45.00))
-                        //.lineToXConstantHeading( 8.50)
-                        .strafeToConstantHeading(new Vector2d(8.50, -45.00))
+                        .strafeToConstantHeading(new Vector2d(46.00, -34.16), velp, acc)
+                        .strafeToConstantHeading(new Vector2d(48.00, -45.00))
+                        .strafeToConstantHeading(new Vector2d(8.50, -45.00), velp, acc)
 
-                        //.lineToXConstantHeading( 43.50)
-                        .strafeToConstantHeading(new Vector2d(45.00, -45.00))
-                        //.lineToYConstantHeading( -53.00)
-                        .strafeToConstantHeading(new Vector2d(43.50, -53.00))
-                        //.lineToXConstantHeading( 8.50)
-                        .strafeToConstantHeading(new Vector2d(5.50, -51.00))
-
+                        .strafeToConstantHeading(new Vector2d(48.00, -45.00), velp, acc)
+                        .strafeToConstantHeading(new Vector2d(47.50, -55.00))
+                        .strafeToConstantHeading(new Vector2d(2.50, -53.00), velp, acc)
 
                         .build()
                 );
-
+        Actions.runBlocking(lift.liftDown());
 
 
 

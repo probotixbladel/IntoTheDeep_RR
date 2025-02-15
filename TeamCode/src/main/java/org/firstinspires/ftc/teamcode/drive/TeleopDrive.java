@@ -97,6 +97,7 @@ public class TeleopDrive extends LinearOpMode {
     private boolean trans = false;
     private boolean transnow = false;
     private double prevarmpos = 0;
+    private boolean liftdown = false;
     private double controller(double x) {
         return (Math.pow(Math.abs(x) * 0.75 + 0.25, 2.3) * Math.signum(x));
     }
@@ -203,11 +204,17 @@ public class TeleopDrive extends LinearOpMode {
             if (gamepad2.dpad_up) {
                 LiftMotor.setTargetPosition(2050);   //2600
                 LiftMotor.setPower(0.8);
+                liftdown = false;
             } else if (gamepad2.dpad_right) {
-                LiftMotor.setTargetPosition(1200);
+                LiftMotor.setTargetPosition(1000);
                 LiftMotor.setPower(0.7);
+                liftdown = false;
             } else if (gamepad2.dpad_down) {
-                LiftMotor.setTargetPosition(200);
+                LiftMotor.setTargetPosition(180);
+                LiftMotor.setPower(0.38);
+                liftdown = true;
+            } else if (liftdown) {
+                LiftMotor.setTargetPosition(500);
                 LiftMotor.setPower(0.38);
             }
 
@@ -228,7 +235,7 @@ public class TeleopDrive extends LinearOpMode {
             } else {
                 if (armpos < 200) {armpos = 200;}
             }
-
+            /*
             if (armpos > 485) {armpos = 485;}
             if (5 < armpos && armpos < 105){
                 transnow = true;
@@ -246,7 +253,7 @@ public class TeleopDrive extends LinearOpMode {
                     armpos = prevarmpos;
                 }
             }
-
+             */
 
 
 
@@ -295,7 +302,7 @@ public class TeleopDrive extends LinearOpMode {
                 TiltServo.setPosition(0.20);
                 flipUp = 0;
             } else if (gamepad2.b) {
-                TiltServo.setPosition(0.5);
+                TiltServo.setPosition(0.4);
                 flipUp = 1;
             } else if (gamepad2.y) {
                 TiltServo.setPosition(0.90);
