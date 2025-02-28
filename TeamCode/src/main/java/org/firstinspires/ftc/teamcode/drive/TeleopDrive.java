@@ -35,6 +35,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 
 import java.lang.Math;
 
@@ -70,6 +72,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
+@Config
 @TeleOp(name="TeleopDrive", group="Linear OpMode")
 //@Disabled
 public class TeleopDrive extends LinearOpMode {
@@ -84,8 +87,8 @@ public class TeleopDrive extends LinearOpMode {
     private DcMotor ArmMotor = null;
     private CRServo GrabServo = null;
     private Servo TiltServo = null;
-    private double gearshift = 0.25;
-    private double turnspeed = 0.4;
+    public static double gearshift = 0.25;
+    public static double turnspeed = 0.4;
     //private double LiftPos = 0;
     private double armpos = 0;
     private boolean srgrab = false;
@@ -98,8 +101,9 @@ public class TeleopDrive extends LinearOpMode {
     private boolean transnow = false;
     private double prevarmpos = 0;
     private boolean liftdown = false;
+    public static double pow = 2.3;
     private double controller(double x) {
-        return (Math.pow(Math.abs(x) * 0.75 + 0.25, 2.3) * Math.signum(x));
+        return (Math.pow(Math.abs(x) * 0.75 + 0.25, pow) * Math.signum(x));
     }
 
     @Override
