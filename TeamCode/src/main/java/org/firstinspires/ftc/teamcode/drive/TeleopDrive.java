@@ -36,10 +36,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import org.firstinspires.ftc.teamcode.drive.PIDController;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import java.lang.Math;
 
@@ -91,6 +94,7 @@ public class TeleopDrive extends LinearOpMode {
     private boolean init = false;;
     public static double pow = 2.3;
     public static double Ks = 0.4;
+
     private double controller(double x, double gearshift) {
         return (Math.pow(Math.abs(x) * (1-Ks) * gearshift + Ks, pow) * Math.signum(x));
     }
@@ -235,28 +239,261 @@ public class TeleopDrive extends LinearOpMode {
     }
 }
 
+@Config
 class GayObjectController {
     private DcMotor erect = null;
+    private DcMotor liftLeft = null;
+    private DcMotor liftRight = null;
+    private DcMotorEx heil = null;
+    private Servo diffl = null;
+    private Servo diffr = null;
+    private Servo grabin = null;
+    private Servo wrist = null;
+    private Servo grabout = null;
+    private boolean up = false;
+    private boolean pasing = false;
+    private boolean lastup = false;
+    private boolean grabn = false;
+    private boolean lasta = false;
+    private boolean lastgrabn = false;
+    private boolean completeMid = false;
+    private boolean lastPress = false;
+    private double lasterect = 0;
+    private double espeed = 0;
+    public static double liftpos = 380;
+    public static double posl = 0.22;
+    public static double posr = 0.80;
+    public static double kp = 0.0028;
+    public static double ki = 0.0013;
+    public static double kd = 0.00035;
+    public static double kpp = 0.2;
+    public static double kii = 0.01;
+    public static double kdd = 0.0009;
+    public static double kf = 0.12;
+    public static double gotoheil = 0;
+    public static boolean target = false;
+    private final double ticksInDegree = 450 / 180.0;
+    public static boolean grab = false;
+    public static int erection = 55;
     private double pos = 0;
+    public  static double grabpos = 0.5;
+    private boolean given = false;
+    AnalogInput diffleft = null;
+    AnalogInput diffright = null;
+    private PIDController erectpid = new PIDController(kpp,kii,kdd);
+    private PIDController heilpid = new PIDController(kp,ki,kd);
     public void init(HardwareMap hardwareMap){
+        diffleft = hardwareMap.get(AnalogInput.class, "diffleft");
+        diffright = hardwareMap.get(AnalogInput.class, "diffright");
+        liftLeft = hardwareMap.get(DcMotor.class, "liftLeft");
+        liftRight = hardwareMap.get(DcMotor.class, "liftRight");
         erect = hardwareMap.get(DcMotor.class, "erect");
-        erect.setTargetPosition(0);
-        erect.setPower(1);
+        heil = hardwareMap.get(DcMotorEx.class, "heil");
+        diffl = hardwareMap.get(Servo.class, "diffLeft");
+        diffr = hardwareMap.get(Servo.class, "diffRight");
+        grabin = hardwareMap.get(Servo.class, "grab'in");
+        wrist = hardwareMap.get(Servo.class, "wrist");
+        grabout = hardwareMap.get(Servo.class, "grab'out");
+        erect.setPower(0);
         erect.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        erect.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        erect.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         erect.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        heil.setPower(0);
+        heil.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        heil.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        heil.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftRight.setTargetPosition(0);
+        liftRight.setPower(1);
+        liftRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        liftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftLeft.setPower(1);
+        liftLeft.setTargetPosition(0);
+        liftLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
+
 
     }
 
     public void update(Gamepad gamepad2, Telemetry telemetry){
-        pos += Math.pow(gamepad2.right_trigger, 1.5) * 10 - Math.pow(gamepad2.left_trigger, 1.5) * 10;
+        double diflpos = diffleft.getVoltage() / 3.3 * 360;
+        double difrpos = diffright.getVoltage() / 3.3 * 360;
 
-        if (pos > -20) {pos = -20;}
-        if (pos < -420) {pos = -420;}
 
-        erect.setTargetPosition((int)pos);
+        if (!lasta & gamepad2.a) {
+            if (pasing) {pasing = false;}
+            else {
+                pasing = true;
+                grab = false;
+            }
+        }
+        lasta = gamepad2.a;
+        if (!pasing) {
+            gotoheil = 0;
+            grabout.setPosition(0.725);
+            //liftpos = 400;
+            //gotoheil = 0;
+
+            pos += Math.pow(gamepad2.right_trigger, 1.5) * 20 - Math.pow(gamepad2.left_trigger, 1.5) * 20;
+            if (pos < 55) {
+                pos = 55;
+            }
+            if (pos > 420) {
+                pos = 420;
+            }
+            erection = (int)pos;
+
+            if (gamepad2.left_stick_button && !lastPress) {
+                if (up) {
+                    up = false;
+                } else {
+                    up = true;
+                }
+                lastPress = true;
+            } else if (!gamepad2.left_stick_button && lastPress) {
+                lastPress = false;
+            }
+
+
+
+            if (up) {
+                //diffl.setPosition(0.02);
+                //diffr.setPosition(1.0);
+                if (!completeMid) {
+                    if (155 < diflpos & diflpos < 215 & 90 < difrpos & difrpos < 155) {
+                        if (172 < diflpos & diflpos < 180 & 111 < difrpos & difrpos < 119) {
+                            completeMid = true;
+                            diffl.setPosition(0.2);
+                            diffr.setPosition(0.8);
+                        } else {
+                            diffl.setPosition(0.515);
+                            diffr.setPosition(0.705);
+                        }
+                    }
+                } else {
+                    diffl.setPosition(0.2);
+                    diffr.setPosition(0.8);
+                }
+            } else {//if (!gamepad2.a) {
+                diffl.setPosition(0.49 - (0.09 * gamepad2.left_stick_x));
+                diffr.setPosition(0.7 - (0.09 * gamepad2.left_stick_x));
+                completeMid = false;
+            //} else {
+            //    completeMid = false;
+//
+  //              diffl.setPosition(posl);
+    //            diffr.setPosition(posr);
+            }
+
+            if (gamepad2.left_bumper & !lastgrabn) {
+                if (grabn) {
+                    grabn = false;
+                } else {
+                    grabn = true;
+                }
+            }
+
+            if (!up) {
+                if (lastup) {
+                    grabn = false;
+                }
+                if (grabn) {
+                    grabin.setPosition(1);
+                }
+                if (!grabn) {
+                    grabin.setPosition(0.69);
+                }
+            } else {
+                grabin.setPosition(1);
+            }
+
+            //PIDFCoefficients pidfNew = new PIDFCoefficients(kp, ki, kd, kf);
+            //heil.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
+
+
+
+            //2750
+            liftRight.setTargetPosition((int) liftpos);
+            liftLeft.setTargetPosition((int) liftpos);
+
+
+
+        }else {
+            if (grab) {
+                grabout.setPosition(0.9);
+                grabin.setPosition(0.69);
+            }
+            if (!grab) {
+                grabout.setPosition(0.725);
+            }
+            if (erect.getCurrentPosition() > -erection+5 & erect.getCurrentPosition() < -erection-5 & 332 < diflpos & diflpos < 342 & 14 < difrpos & difrpos < 24 & liftRight.getCurrentPosition() < 385 & liftRight.getCurrentPosition() > 375 & heil.getCurrentPosition() > -5 & heil.getCurrentPosition() < 5) {
+                grab = true;
+                given = true;
+
+                grabout.setPosition(0.9);
+                grabin.setPosition(0.69);
+
+            }
+            if (!given) {
+                if (grab) {
+                    grabout.setPosition(0.9);
+                    grabin.setPosition(0.69);
+                }
+                if (!grab) {
+                    grabout.setPosition(0.725);
+                }
+                wrist.setPosition(1);
+                liftRight.setTargetPosition(380);
+                liftLeft.setTargetPosition(380);
+                diffl.setPosition(0.02);
+                diffr.setPosition(1.0); 
+
+                erection = 55;
+            } else if (gamepad2.y) {
+                wrist.setPosition(grabpos);
+                grabout.setPosition(0.9);
+                liftRight.setTargetPosition(2650);
+                liftLeft.setTargetPosition(2650);
+                gotoheil = 500;
+                if (gamepad2.dpad_left) {
+                    pasing = false;
+                    grab = false;
+                    given = false;
+                    grabout.setPosition(0.725);
+                    wrist.setPosition(0.1);
+                    grabout.setPosition(0.725);
+
+                }
+            }
+
+
+        }
+        lastgrabn = gamepad2.left_bumper;
+        lastup = up;
+
+        heilpid.setParams(kp, ki, kd);
+        heil.setPower((Math.sin(Math.toRadians(heil.getCurrentPosition() / ticksInDegree + 45)) * kf) + heilpid.update(gotoheil, heil.getCurrentPosition()));
+
+        erectpid.setParams(kpp, kii, kdd);
+        erect.setPower(erectpid.update(-erection, erect.getCurrentPosition()));
+        espeed = lasterect - erect.getCurrentPosition();
+        lasterect = erect.getCurrentPosition();
+
+
+                //450
         //erect.setTargetPosition(pos);
-        telemetry.addData("erect", pos);
-        telemetry.addData("erect", erect.getCurrentPosition());
+        telemetry.addData("heil", heil.getCurrentPosition());
+        telemetry.addData("pid", Math.sin(Math.toRadians(gotoheil/ticksInDegree + 42)));
+        telemetry.addData("difl", diffleft.getVoltage() / 3.3 * 360);
+        telemetry.addData("difr", diffright.getVoltage() / 3.3 * 360);
+        telemetry.addData("e", erect.getCurrentPosition());
+        telemetry.addData("lift", liftLeft.getCurrentPosition());
+        telemetry.addData("s", pasing);
+        telemetry.addData("grab", grabn);
+        telemetry.addData("grab", grabin.getPosition());
+        telemetry.addData("e speed", espeed);
+
     }
 }
