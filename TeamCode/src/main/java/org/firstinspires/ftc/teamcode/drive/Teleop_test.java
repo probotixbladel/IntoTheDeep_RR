@@ -46,7 +46,6 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import java.lang.Math;
 
-
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
@@ -79,7 +78,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
  */
 
 @Config
-@TeleOp(name="Teleop_test", group="Linear OpMode")
+@TeleOp(name="TeleopDrive", group="Linear OpMode")
 //@Disabled
 public class TeleopDrive extends LinearOpMode {
 
@@ -98,7 +97,7 @@ public class TeleopDrive extends LinearOpMode {
     private double controller(double x, double gearshift) {
         return (Math.pow(Math.abs(x) * (1-Ks) * gearshift + Ks, pow) * Math.signum(x));
     }
-    private GayObjectController Objcon = new GayObjectController();
+    private GameObjectController Objcon = new GameObjectController();
 
     @Override
     public void runOpMode() {
@@ -240,7 +239,7 @@ public class TeleopDrive extends LinearOpMode {
 }
 
 @Config
-class GayObjectController {
+class GameObjectController {
     private DcMotor erect = null;
     private DcMotor liftLeft = null;
     private DcMotor liftRight = null;
@@ -263,13 +262,14 @@ class GayObjectController {
     public static double liftpos = 380;
     public static double posl = 0.22;
     public static double posr = 0.80;
-    public static double kp = 0.0028;
-    public static double ki = 0.0013;
-    public static double kd = 0.00035;
-    public static double kpp = 0.2;
-    public static double kii = 0.01;
-    public static double kdd = 0.0009;
-    public static double kf = 0.12;
+    public static double kp = 0.0;
+    public static double ki = 0.0;
+    public static double kd = 0.0;
+    public static double erectspeed = 10.0;
+    //public static double kpp = 0.2;
+    //public static double kii = 0.01;
+    //public static double kdd = 0.0009;
+    //public static double kf = 0.12;
     public static double gotoheil = 0;
     public static boolean target = false;
     private final double ticksInDegree = 450 / 180.0;
@@ -336,7 +336,7 @@ class GayObjectController {
             //liftpos = 400;
             //gotoheil = 0;
 
-            pos += Math.pow(gamepad2.right_trigger, 1.5) * 20 - Math.pow(gamepad2.left_trigger, 1.5) * 20;
+            pos += Math.pow(gamepad2.right_trigger, 1.5) * erectspeed - Math.pow(gamepad2.left_trigger, 1.5) * erectspeed;
             if (pos < 55) {
                 pos = 55;
             }
@@ -473,10 +473,10 @@ class GayObjectController {
         lastgrabn = gamepad2.left_bumper;
         lastup = up;
 
-        heilpid.setParams(kp, ki, kd);
-        heil.setPower((Math.sin(Math.toRadians(heil.getCurrentPosition() / ticksInDegree + 45)) * kf) + heilpid.update(gotoheil, heil.getCurrentPosition()));
+        heilpid.setParams(0.0028, 0.0013, 0.00035);
+        heil.setPower((Math.sin(Math.toRadians(heil.getCurrentPosition() / ticksInDegree + 45)) * 0.12) + heilpid.update(gotoheil, heil.getCurrentPosition()));
 
-        erectpid.setParams(kpp, kii, kdd);
+        erectpid.setParams(kp, ki, kd);
         erect.setPower(erectpid.update(-erection, erect.getCurrentPosition()));
         espeed = lasterect - erect.getCurrentPosition();
         lasterect = erect.getCurrentPosition();
@@ -484,16 +484,17 @@ class GayObjectController {
 
                 //450
         //erect.setTargetPosition(pos);
-        telemetry.addData("heil", heil.getCurrentPosition());
-        telemetry.addData("pid", Math.sin(Math.toRadians(gotoheil/ticksInDegree + 42)));
-        telemetry.addData("difl", diffleft.getVoltage() / 3.3 * 360);
-        telemetry.addData("difr", diffright.getVoltage() / 3.3 * 360);
-        telemetry.addData("e", erect.getCurrentPosition());
-        telemetry.addData("lift", liftLeft.getCurrentPosition());
-        telemetry.addData("s", pasing);
-        telemetry.addData("grab", grabn);
-        telemetry.addData("grab", grabin.getPosition());
-        telemetry.addData("e speed", espeed);
+        //telemetry.addData("heil", heil.getCurrentPosition());
+        //telemetry.addData("pid", Math.sin(Math.toRadians(gotoheil/ticksInDegree + 42)));
+        //telemetry.addData("difl", diffleft.getVoltage() / 3.3 * 360);
+        //telemetry.addData("difr", diffright.getVoltage() / 3.3 * 360);
+        telemetry.addData("uitschuif goto", erection);
+        telemetry.addData("uitschuif pos ", erect.getCurrentPosition());
+        //telemetry.addData("lift", liftLeft.getCurrentPosition());
+        //telemetry.addData("s", pasing);
+        //telemetry.addData("grab", grabn);
+        //telemetry.addData("grab", grabin.getPosition());
+        telemetry.addData("uitschuif speed", espeed);
 
     }
 }
