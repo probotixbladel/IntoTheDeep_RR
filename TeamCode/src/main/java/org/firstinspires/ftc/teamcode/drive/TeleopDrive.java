@@ -78,7 +78,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Config
+//@Config
 @TeleOp(name="TeleopDrive", group="Linear OpMode")
 //@Disabled
 public class TeleopDrive extends LinearOpMode {
@@ -91,7 +91,7 @@ public class TeleopDrive extends LinearOpMode {
     private DcMotor rightBackDrive = null;
     public static double gearshift = 0.25;
     public static double turnspeed = 0.4;
-    private boolean init = false;;
+    private boolean init = false;
     public static double pow = 2.3;
     public static double Ks = 0.4;
 
@@ -382,9 +382,8 @@ class GayObjectController {
                 completeMid = false;
             //} else {
             //    completeMid = false;
-//
-  //              diffl.setPosition(posl);
-    //            diffr.setPosition(posr);
+                // diffl.setPosition(posl);
+            //            diffr.setPosition(posr);
             }
 
             if (gamepad2.left_bumper & !lastgrabn) {

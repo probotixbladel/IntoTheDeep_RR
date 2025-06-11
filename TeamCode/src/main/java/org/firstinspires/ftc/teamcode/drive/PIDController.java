@@ -44,6 +44,12 @@ public class PIDController {
         return out;
 
     }
+
+    public void reset() {
+        integralSum = 0;
+        lastError = 0;
+        timer.reset();
+    }
 }
 
 
