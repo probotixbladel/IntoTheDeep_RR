@@ -180,85 +180,78 @@ public class Teleop_test extends LinearOpMode {
 
 @Config
 class GameObjectController {
-    private DcMotor erect = null;
-    private DcMotor liftLeft = null;
-    private DcMotor liftRight = null;
-    private DcMotorEx heil = null;
-    private Servo diffl = null;
-    private Servo diffr = null;
-    private Servo grabin = null;
-    private Servo wrist = null;
-    private Servo grabout = null;
-    private boolean up = false;
-    private boolean pasing = false;
-    private boolean lastup = false;
-    private boolean grabn = false;
-    private boolean lasta = false;
-    private boolean lastgrabn = false;
-    private boolean completeMid = false;
-    private boolean lastPress = false;
-    private double lasterect = 0;
-    private double espeed = 0;
-    private boolean onTheway = false;
-    public static double liftpos = 380;
-    public static double posl = 0.22;
-    public static double posr = 0.80;
-    public static double kp = 0.02;
-    public static double ki = 0.008;
-    public static double kd = 0.001;
-    public static double erectspeed = 10.0;
-    public static double gotoheil = 0;
-    public static double toplift = 2650;
-    public static double topheil = 500;
-    public static boolean target = false;
-    private final double ticksInDegree = 450 / 180.0;
-    public static boolean grab = false;
-    private int erection = 55;
-    public static int finishErection = 65;
-    private double pos = 0;
-    public  static double grabpos = 0.5;
-    private boolean given = false;
+    //init vars:
+    private DcMotor slideoutMotor, liftLeft, liftRight;
+    private Servo diffl, diffr, grabin, wrist, grabout;
+    private boolean up, pasing, lastup, grabn, lasta, lastgrabn, completeMid, lastPress, onTheway, given;
+    private double lasterect, espeed, pos;
+
+    private DcMotorEx outputMotor = null;
+
     AnalogInput diffleft = null;
     AnalogInput diffright = null;
-    private PIDController erectpid = new PIDController(kp, ki, kd);
-    private PIDController heilpid = new PIDController(0.0028,0.0013,0.00035);
-    public void init(HardwareMap hardwareMap){
-        diffleft = hardwareMap.get(AnalogInput.class, "diffleft");
-        diffright = hardwareMap.get(AnalogInput.class, "diffright");
-        liftLeft = hardwareMap.get(DcMotor.class, "liftLeft");
-        liftRight = hardwareMap.get(DcMotor.class, "liftRight");
-        erect = hardwareMap.get(DcMotor.class, "erect");
-        heil = hardwareMap.get(DcMotorEx.class, "heil");
-        diffl = hardwareMap.get(Servo.class, "diffLeft");
-        diffr = hardwareMap.get(Servo.class, "diffRight");
-        grabin = hardwareMap.get(Servo.class, "grab'in");
-        wrist = hardwareMap.get(Servo.class, "wrist");
-        grabout = hardwareMap.get(Servo.class, "grab'out");
-        erect.setPower(0);
-        erect.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        erect.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        erect.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        heil.setPower(0);
-        heil.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        heil.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        heil.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        liftRight.setTargetPosition(0);
-        liftRight.setPower(1);
-        liftRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        liftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        liftLeft.setPower(1);
-        liftLeft.setTargetPosition(0);
-        liftLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
+    private PIDController slideoutPID = new PIDController(Constants.SLIDEOUT_P, Constants.SLIDEOUT_I, Constants.SLIDEOUT_D);
+    private PIDController outputPID = new PIDController(Constants.OUTPUT_P, Constants.OUTPUT_I, Constants.OUTPUT_D);
+
+    // Use these as local variables instead of class fields:
+    // double gotoheil = Constants.OUTPUT_ARM_START_POSITION;
+    // double topheil = Constants.OUTPUT_ARM_TOP_POSITION;
+    // boolean target = Constants.TARGET;
+    // final double ticksInDegree = Constants.TICKS_IN_DEGREE;
+    // boolean grab = Constants.GRAB;
+    // int erection = Constants.SLIDEOUT_ARM_START_POSITION;
+    // int finishErection = Constants.SLIDEOUT_ARM_END_POSITION;
+    // double grabpos = Constants.GRAB_POSITION;
+
+    public void init(HardwareMap hardwareMap) {
+        //TODO
+        //change hardwareMap on the android thingie from the commented name to the current name
+        diffleft = hardwareMap.get(AnalogInput.class, "diffleft"); //kijk even naar deze, nu zijn er diffLeft en diffleft maar wat is wat.
+        diffright = hardwareMap.get(AnalogInput.class, "diffright"); //kijk even naar deze, nu zijn er diffRight en diffright maar wat is wat.
+        diffl = hardwareMap.get(Servo.class, "diffLeft");  //kijk even naar deze, nu zijn er diffLeft en diffleft maar wat is wat.
+        diffr = hardwareMap.get(Servo.class, "diffRight"); //kijk even naar deze, nu zijn er diffRight en diffright maar wat is wat.
+
+
+        liftLeftMotor = hardwareMap.get(DcMotor.class, "liftLeftMotor"); //previously "liftLeft"
+        liftRightMotor = hardwareMap.get(DcMotor.class, "liftRightMotor"); //previously "liftRight"
+        slideoutMotor = hardwareMap.get(DcMotor.class, "slideoutMotor"); //previously "erect"
+        outputMotor = hardwareMap.get(DcMotorEx.class, "outputMotor");  //previously "heil"
+
+        grabInServo = hardwareMap.get(Servo.class, "grabInServo"); //previously "grab`in"
+        wristServo = hardwareMap.get(Servo.class, "wristServo"); //previously "wrist"
+        grabOutServo = hardwareMap.get(Servo.class, "grabOutServo"); //previously "grab`out"
+
+
+        //initialize the motor vars.
+        slideoutMotor.setPower(0);
+        slideoutMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slideoutMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        slideoutMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        
+        outputMotor.setPower(0);
+        outputMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        outputMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        outputMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        
+        liftRightMotor.setTargetPosition(0);
+        liftRightMotor.setPower(1);
+        liftRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        liftRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        liftRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        liftLeftMotor.setPower(1);
+        liftLeftMotor.setTargetPosition(0);
+        liftLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        liftLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        liftLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
+    
     public void update(Gamepad gamepad2, Telemetry telemetry){
         double diflpos = diffleft.getVoltage() / 3.3 * 360;
         double difrpos = diffright.getVoltage() / 3.3 * 360;
-        erectpid.setParams(kp, ki, kd);
+        slideoutPID.setParams(Constants.KP, Constants.KI, Constants.KD);
 
         if (!lasta & gamepad2.a) {
             if (pasing) {pasing = false;}
@@ -270,10 +263,10 @@ class GameObjectController {
 
         lasta = gamepad2.a;
         if (!pasing) {
-            gotoheil = 0;
+            Constants.OUTPUT_ARM_START_POSITION = 0;
             grabout.setPosition(0.725);
 
-            pos += Math.pow(gamepad2.right_trigger, 1.5) * erectspeed - Math.pow(gamepad2.left_trigger, 1.5) * erectspeed;
+            pos += Math.pow(gamepad2.right_trigger, 1.5) * Constants.SLIDEOUT_ARM_SPEED - Math.pow(gamepad2.left_trigger, 1.5) * Constants.SLIDEOUT_ARM_SPEED;
             if (pos < 55) {
                 pos = 55;
             }
@@ -337,8 +330,8 @@ class GameObjectController {
                 grabin.setPosition(1);
             }
 
-            liftRight.setTargetPosition((int) liftpos);
-            liftLeft.setTargetPosition((int) liftpos);
+            liftRightMotor.setTargetPosition((int) Constants.LIFT_POSITION);
+            liftLeftMotor.setTargetPosition((int) Constants.LIFT_POSITION);
 
         }else {
             if (grab) {
@@ -381,12 +374,12 @@ class GameObjectController {
             } else if (gamepad2.y) {
                 wrist.setPosition(grabpos);
                 grabout.setPosition(0.9);
-                liftRight.setTargetPosition((int) toplift);
-                liftLeft.setTargetPosition((int) toplift);
-                gotoheil = topheil;
+                liftRight.setTargetPosition((int) Constants.TOP_LIFT);
+                liftLeft.setTargetPosition((int) Constants.TOP_LIFT);
+                Constants.OUTPUT_ARM_START_POSITION = Constants.TOP_LIFT;
                 onTheway = true;
 
-            } else if (gamepad2.dpad_left & onTheway & liftRight.getCurrentPosition() > toplift - 10 & liftRight.getCurrentPosition() < toplift + 10) {
+            } else if (gamepad2.dpad_left & onTheway & liftRight.getCurrentPosition() > Constants.TOP_LIFT - 10 & liftRight.getCurrentPosition() < Constants.TOP_LIFT + 10) {
                 pasing = false;
                 grab = false;
                 given = false;
@@ -401,15 +394,15 @@ class GameObjectController {
         lastgrabn = gamepad2.left_bumper;
         lastup = up;
 
-        heilpid.setParams(0.0028, 0.0013, 0.00035);
-        heil.setPower((Math.sin(Math.toRadians(heil.getCurrentPosition() / ticksInDegree + 45)) * 0.12) + heilpid.update(gotoheil, heil.getCurrentPosition()));
+        outputPID.setParams(Constants.OUTPUT_P, Constants.OUTPUT_I, Constants.OUTPUT_D);
+        outputMotor.setPower((Math.sin(Math.toRadians(heil.getCurrentPosition() / ticksInDegree + 45)) * 0.12) + outputPID.update(Constants.SLIDEOUT_ARM_START_POSITION, outputMotor.getCurrentPosition()));
 
-        erect.setPower(erectpid.update(-erection, erect.getCurrentPosition()));
-        espeed = lasterect - erect.getCurrentPosition();
-        lasterect = erect.getCurrentPosition();
+        slideoutMotor.setPower(slideoutPID.update(-erection, slideoutMotor.getCurrentPosition()));
+        espeed = lasterect - slideoutMotor.getCurrentPosition();
+        lasterect = slideoutMotor.getCurrentPosition();
 
-        telemetry.addData("uitschuif goto :", erection);
-        telemetry.addData("uitschuif pos  :", erect.getCurrentPosition());
+        telemetry.addData("uitschuif goto :", Constants.SLIDEOUT_ARM_START_POSITION);
+        telemetry.addData("uitschuif pos  :", slideoutMotor.getCurrentPosition());
         telemetry.addData("uitschuif speed:", espeed);
     }
 }
