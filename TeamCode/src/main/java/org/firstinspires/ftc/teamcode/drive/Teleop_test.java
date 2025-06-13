@@ -46,7 +46,6 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import java.lang.Math;
 
-
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
@@ -81,7 +80,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 @Config
 @TeleOp(name="Teleop_test", group="Linear OpMode")
 //@Disabled
-public class TeleopDrive extends LinearOpMode {
+public class Teleop_test extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
@@ -98,13 +97,10 @@ public class TeleopDrive extends LinearOpMode {
     private double controller(double x, double gearshift) {
         return (Math.pow(Math.abs(x) * (1-Ks) * gearshift + Ks, pow) * Math.signum(x));
     }
-    private GayObjectController Objcon = new GayObjectController();
+    private GameObjectController Objcon = new GameObjectController();
 
     @Override
     public void runOpMode() {
-
-        // Initialize the hardware variables. Note that the strings used here must correspond
-        // to the names assigned during the robot configuration step on the DS or RC devices.
         leftFrontDrive  = hardwareMap.get(DcMotor.class, "leftFront");
         leftBackDrive  = hardwareMap.get(DcMotor.class, "leftBack");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "rightFront");
@@ -117,63 +113,32 @@ public class TeleopDrive extends LinearOpMode {
         rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // TODO: reverse motor directions if needed
-        //   leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         leftFrontDrive.setDirection(DcMotorSimple.Direction.REVERSE);
         leftBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
         rightBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        
-        //LiftEncoder new OverflowEncoder(new RawEncoder(LiftMotor));
-
-        // ########################################################################################
-        // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
-        // ########################################################################################
-        // Most robots need the motors on one side to be reversed to drive forward.
-        // The motor reversals shown here are for a "direct drive" robot (the wheels turn the same direction as the motor shaft)
-        // If your robot has additional gear reductions or uses a right-angled drive, it's important to ensure
-        // that your motors are turning in the correct direction.  So, start out with the reversals here, BUT
-        // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
-        // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
-        // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
-
-
-        // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
         waitForStart();
         runtime.reset();
 
-        // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             if (!init){
                 init = true;
             }
             double max;
 
-
-            // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-            /*
-            double axial   = -gamepad1.left_stick_y * gearshift; ; // Note: pushing stick forward gives negative value
-            double lateral =  gamepad1.left_stick_x * gearshift;  
-            double yaw     =  gamepad1.right_stick_x * turnspeed; 
-            */
-
-            double axial   = -controller(gamepad1.left_stick_y, gearshift); // Note: pushing stick forward gives negative value
+            double axial   = -controller(gamepad1.left_stick_y, gearshift);
             double lateral =  controller(gamepad1.left_stick_x, gearshift);
             double yaw     =  controller(gamepad1.right_stick_x, turnspeed);
 
 
-            // Combine the joystick requests for each axis-motion to determine each wheel's power.
-            // Set up a variable for each drive wheel to save the power level for telemetry.
-            double leftFrontPower  = (axial + lateral + yaw);// * gearshift;
-            double rightFrontPower = (axial - lateral - yaw);// * gearshift;
-            double leftBackPower   = (axial - lateral + yaw);// * gearshift;
-            double rightBackPower  = (axial + lateral - yaw);// * gearshift;
+            double leftFrontPower  = (axial + lateral + yaw);
+            double rightFrontPower = (axial - lateral - yaw);
+            double leftBackPower   = (axial - lateral + yaw);
+            double rightBackPower  = (axial + lateral - yaw);
 
-            // Normalize the values so no wheel power exceeds 100%
-            // This ensures that the robot maintains the desired motion.
             max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
             max = Math.max(max, Math.abs(leftBackPower));
             max = Math.max(max, Math.abs(rightBackPower));
@@ -199,40 +164,14 @@ public class TeleopDrive extends LinearOpMode {
                 gearshift = 1.0;
                 turnspeed = 1.0;
             }
-            // This is test code:
-            //
-            // Uncomment the following code to test your motor directions.
-            // Each button should make the corresponding motor run FORWARD.
-            //   1) First get all the motors to take to correct positions on the robot
-            //      by adjusting your Robot Configuration if necessary.
-            //   2) Then make sure they run in the correct direction by modifying the
-            //      the setDirection() calls above.
-            // Once the correct motors move in the correct direction re-comment this code.
 
-            /*
-            leftFrontPower  = gamepad1.x ? 1.0 : 0.0;  // X gamepad
-            leftBackPower   = gamepad1.a ? 1.0 : 0.0;  // A gamepad
-            rightFrontPower = gamepad1.y ? 1.0 : 0.0;  // Y gamepad
-            rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
-            */
-
-            // Send calculated power to wheels
             leftFrontDrive.setPower(leftFrontPower);
             rightFrontDrive.setPower(rightFrontPower);
             leftBackDrive.setPower(leftBackPower);
             rightBackDrive.setPower(rightBackPower);
             Objcon.update(gamepad2, telemetry);
 
-            // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            //telemetry.addData("erect", Objcon.update(gamepad2, telemetry));
-            /*
-            telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
-            telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-
-            telemetry.addData("erect possision: ", "%4.2f",  );
-            */
-
 
             telemetry.update();
         }
@@ -240,7 +179,7 @@ public class TeleopDrive extends LinearOpMode {
 }
 
 @Config
-class GayObjectController {
+class GameObjectController {
     private DcMotor erect = null;
     private DcMotor liftLeft = null;
     private DcMotor liftRight = null;
@@ -260,28 +199,29 @@ class GayObjectController {
     private boolean lastPress = false;
     private double lasterect = 0;
     private double espeed = 0;
+    private boolean onTheway = false;
     public static double liftpos = 380;
     public static double posl = 0.22;
     public static double posr = 0.80;
-    public static double kp = 0.0028;
-    public static double ki = 0.0013;
-    public static double kd = 0.00035;
-    public static double kpp = 0.2;
-    public static double kii = 0.01;
-    public static double kdd = 0.0009;
-    public static double kf = 0.12;
+    public static double kp = 0.02;
+    public static double ki = 0.008;
+    public static double kd = 0.001;
+    public static double erectspeed = 10.0;
     public static double gotoheil = 0;
+    public static double toplift = 2650;
+    public static double topheil = 500;
     public static boolean target = false;
     private final double ticksInDegree = 450 / 180.0;
     public static boolean grab = false;
-    public static int erection = 55;
+    private int erection = 55;
+    public static int finishErection = 65;
     private double pos = 0;
     public  static double grabpos = 0.5;
     private boolean given = false;
     AnalogInput diffleft = null;
     AnalogInput diffright = null;
-    private PIDController erectpid = new PIDController(kpp,kii,kdd);
-    private PIDController heilpid = new PIDController(kp,ki,kd);
+    private PIDController erectpid = new PIDController(kp, ki, kd);
+    private PIDController heilpid = new PIDController(0.0028,0.0013,0.00035);
     public void init(HardwareMap hardwareMap){
         diffleft = hardwareMap.get(AnalogInput.class, "diffleft");
         diffright = hardwareMap.get(AnalogInput.class, "diffright");
@@ -313,14 +253,12 @@ class GayObjectController {
         liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
-
-
     }
 
     public void update(Gamepad gamepad2, Telemetry telemetry){
         double diflpos = diffleft.getVoltage() / 3.3 * 360;
         double difrpos = diffright.getVoltage() / 3.3 * 360;
-
+        erectpid.setParams(kp, ki, kd);
 
         if (!lasta & gamepad2.a) {
             if (pasing) {pasing = false;}
@@ -329,14 +267,13 @@ class GayObjectController {
                 grab = false;
             }
         }
+
         lasta = gamepad2.a;
         if (!pasing) {
             gotoheil = 0;
             grabout.setPosition(0.725);
-            //liftpos = 400;
-            //gotoheil = 0;
 
-            pos += Math.pow(gamepad2.right_trigger, 1.5) * 20 - Math.pow(gamepad2.left_trigger, 1.5) * 20;
+            pos += Math.pow(gamepad2.right_trigger, 1.5) * erectspeed - Math.pow(gamepad2.left_trigger, 1.5) * erectspeed;
             if (pos < 55) {
                 pos = 55;
             }
@@ -356,11 +293,7 @@ class GayObjectController {
                 lastPress = false;
             }
 
-
-
             if (up) {
-                //diffl.setPosition(0.02);
-                //diffr.setPosition(1.0);
                 if (!completeMid) {
                     if (155 < diflpos & diflpos < 215 & 90 < difrpos & difrpos < 155) {
                         if (172 < diflpos & diflpos < 180 & 111 < difrpos & difrpos < 119) {
@@ -376,15 +309,10 @@ class GayObjectController {
                     diffl.setPosition(0.2);
                     diffr.setPosition(0.8);
                 }
-            } else {//if (!gamepad2.a) {
+            } else {
                 diffl.setPosition(0.49 - (0.09 * gamepad2.left_stick_x));
                 diffr.setPosition(0.7 - (0.09 * gamepad2.left_stick_x));
                 completeMid = false;
-            //} else {
-            //    completeMid = false;
-//
-  //              diffl.setPosition(posl);
-    //            diffr.setPosition(posr);
             }
 
             if (gamepad2.left_bumper & !lastgrabn) {
@@ -409,33 +337,27 @@ class GayObjectController {
                 grabin.setPosition(1);
             }
 
-            //PIDFCoefficients pidfNew = new PIDFCoefficients(kp, ki, kd, kf);
-            //heil.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
-
-
-
-            //2750
             liftRight.setTargetPosition((int) liftpos);
             liftLeft.setTargetPosition((int) liftpos);
-
-
 
         }else {
             if (grab) {
                 grabout.setPosition(0.9);
                 grabin.setPosition(0.69);
             }
+
             if (!grab) {
                 grabout.setPosition(0.725);
             }
-            if (erect.getCurrentPosition() > -erection+5 & erect.getCurrentPosition() < -erection-5 & 332 < diflpos & diflpos < 342 & 14 < difrpos & difrpos < 24 & liftRight.getCurrentPosition() < 385 & liftRight.getCurrentPosition() > 375 & heil.getCurrentPosition() > -5 & heil.getCurrentPosition() < 5) {
+
+            if (erect.getCurrentPosition() > -finishErection-5 & erect.getCurrentPosition() < -finishErection+5 & 332 < diflpos & diflpos < 342 & 14 < difrpos & difrpos < 24 & liftRight.getCurrentPosition() < 385 & liftRight.getCurrentPosition() > 375 & heil.getCurrentPosition() > -5 & heil.getCurrentPosition() < 5) {
                 grab = true;
                 given = true;
 
                 grabout.setPosition(0.9);
                 grabin.setPosition(0.69);
-
             }
+
             if (!given) {
                 if (grab) {
                     grabout.setPosition(0.9);
@@ -448,52 +370,46 @@ class GayObjectController {
                 liftRight.setTargetPosition(380);
                 liftLeft.setTargetPosition(380);
                 diffl.setPosition(0.02);
-                diffr.setPosition(1.0); 
+                diffr.setPosition(1.0);
 
-                erection = 55;
+                if (332 < diflpos & diflpos < 342 & 14 < difrpos & difrpos < 24) {
+                    erection = finishErection;
+                } else {
+                    erection = 100;
+                }
+
             } else if (gamepad2.y) {
                 wrist.setPosition(grabpos);
                 grabout.setPosition(0.9);
-                liftRight.setTargetPosition(2650);
-                liftLeft.setTargetPosition(2650);
-                gotoheil = 500;
-                if (gamepad2.dpad_left) {
-                    pasing = false;
-                    grab = false;
-                    given = false;
-                    grabout.setPosition(0.725);
-                    wrist.setPosition(0.1);
-                    grabout.setPosition(0.725);
+                liftRight.setTargetPosition(toplift);
+                liftLeft.setTargetPosition(toplift);
+                gotoheil = topheil;
+                onTheway = true;
 
-                }
+            } else if (gamepad2.dpad_left & onTheway & liftRight.getCurrentPosition() > toplift - 10 & liftRight.getCurrentPosition() < toplift + 10) {
+                pasing = false;
+                grab = false;
+                given = false;
+                grabout.setPosition(0.725);
+                wrist.setPosition(0.1);
+                grabout.setPosition(0.725);
+                onTheway = false;
+
             }
-
-
         }
+
         lastgrabn = gamepad2.left_bumper;
         lastup = up;
 
-        heilpid.setParams(kp, ki, kd);
-        heil.setPower((Math.sin(Math.toRadians(heil.getCurrentPosition() / ticksInDegree + 45)) * kf) + heilpid.update(gotoheil, heil.getCurrentPosition()));
+        heilpid.setParams(0.0028, 0.0013, 0.00035);
+        heil.setPower((Math.sin(Math.toRadians(heil.getCurrentPosition() / ticksInDegree + 45)) * 0.12) + heilpid.update(gotoheil, heil.getCurrentPosition()));
 
-        erectpid.setParams(kpp, kii, kdd);
         erect.setPower(erectpid.update(-erection, erect.getCurrentPosition()));
         espeed = lasterect - erect.getCurrentPosition();
         lasterect = erect.getCurrentPosition();
 
-
-                //450
-        //erect.setTargetPosition(pos);
-        telemetry.addData("heil", heil.getCurrentPosition());
-        telemetry.addData("pid", Math.sin(Math.toRadians(gotoheil/ticksInDegree + 42)));
-        telemetry.addData("difl", diffleft.getVoltage() / 3.3 * 360);
-        telemetry.addData("difr", diffright.getVoltage() / 3.3 * 360);
-        telemetry.addData("e", erect.getCurrentPosition());
-        telemetry.addData("lift", liftLeft.getCurrentPosition());
-        telemetry.addData("s", pasing);
-        telemetry.addData("grab", grabn);
-        telemetry.addData("grab", grabin.getPosition());
-        telemetry.addData("e speed", espeed);
-
+        telemetry.addData("uitschuif goto :", erection);
+        telemetry.addData("uitschuif pos  :", erect.getCurrentPosition());
+        telemetry.addData("uitschuif speed:", espeed);
     }
 }
