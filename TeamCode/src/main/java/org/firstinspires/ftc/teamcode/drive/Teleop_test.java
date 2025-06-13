@@ -381,8 +381,8 @@ class GameObjectController {
             } else if (gamepad2.y) {
                 wrist.setPosition(grabpos);
                 grabout.setPosition(0.9);
-                liftRight.setTargetPosition(toplift);
-                liftLeft.setTargetPosition(toplift);
+                liftRight.setTargetPosition((int) toplift);
+                liftLeft.setTargetPosition((int) toplift);
                 gotoheil = topheil;
                 onTheway = true;
 
