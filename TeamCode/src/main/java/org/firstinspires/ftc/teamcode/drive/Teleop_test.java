@@ -180,6 +180,7 @@ public class Teleop_test extends LinearOpMode {
 
 @Config
 class GameObjectController {
+    private ElapsedTime time = new ElapsedTime();
     private DcMotor erect = null;
     private DcMotor liftLeft = null;
     private DcMotor liftRight = null;
@@ -200,21 +201,26 @@ class GameObjectController {
     private double lasterect = 0;
     private double espeed = 0;
     private boolean onTheway = false;
-    public static double liftpos = 380;
+    public static double wristDown = 0.1;
+    public static double wristUp = 1;
+    public static double wait = 250;
+    public static double liftpos = 365;
+    public static double liftpick = 365;
     public static double posl = 0.22;
     public static double posr = 0.80;
     public static double kp = 0.02;
-    public static double ki = 0.008;
+    public static double ki = 0.009;
     public static double kd = 0.001;
     public static double erectspeed = 10.0;
     public static double gotoheil = 0;
-    public static double toplift = 2650;
-    public static double topheil = 500;
+    public static double toplift = 2900;
+    public static double topheil = 490;
     public static boolean target = false;
     private final double ticksInDegree = 450 / 180.0;
+    private double releaseTime = 0;
     public static boolean grab = false;
     private int erection = 55;
-    public static int finishErection = 65;
+    public static int finishErection = 60;
     private double pos = 0;
     public  static double grabpos = 0.5;
     private boolean given = false;
@@ -270,7 +276,6 @@ class GameObjectController {
 
         lasta = gamepad2.a;
         if (!pasing) {
-            gotoheil = 0;
             grabout.setPosition(0.725);
 
             pos += Math.pow(gamepad2.right_trigger, 1.5) * erectspeed - Math.pow(gamepad2.left_trigger, 1.5) * erectspeed;
@@ -337,8 +342,13 @@ class GameObjectController {
                 grabin.setPosition(1);
             }
 
-            liftRight.setTargetPosition((int) liftpos);
-            liftLeft.setTargetPosition((int) liftpos);
+            if (time.milliseconds() - releaseTime > wait) {
+                wrist.setPosition(wristDown);
+                liftRight.setTargetPosition((int) liftpos);
+                liftLeft.setTargetPosition((int) liftpos);
+                gotoheil = 0;
+
+            }
 
         }else {
             if (grab) {
@@ -350,7 +360,7 @@ class GameObjectController {
                 grabout.setPosition(0.725);
             }
 
-            if (erect.getCurrentPosition() > -finishErection-5 & erect.getCurrentPosition() < -finishErection+5 & 332 < diflpos & diflpos < 342 & 14 < difrpos & difrpos < 24 & liftRight.getCurrentPosition() < 385 & liftRight.getCurrentPosition() > 375 & heil.getCurrentPosition() > -5 & heil.getCurrentPosition() < 5) {
+            if (erect.getCurrentPosition() > -finishErection-5 & erect.getCurrentPosition() < -finishErection+5 & 332 < diflpos & diflpos < 342 & 14 < difrpos & difrpos < 24 & liftRight.getCurrentPosition() < liftpick+5 & liftRight.getCurrentPosition() > liftpick-5 & heil.getCurrentPosition() > -5 & heil.getCurrentPosition() < 5) {
                 grab = true;
                 given = true;
 
@@ -366,9 +376,9 @@ class GameObjectController {
                 if (!grab) {
                     grabout.setPosition(0.725);
                 }
-                wrist.setPosition(1);
-                liftRight.setTargetPosition(380);
-                liftLeft.setTargetPosition(380);
+                wrist.setPosition(wristUp);
+                liftRight.setTargetPosition((int)liftpick);
+                liftLeft.setTargetPosition((int)liftpick);
                 diffl.setPosition(0.02);
                 diffr.setPosition(1.0);
 
@@ -378,7 +388,7 @@ class GameObjectController {
                     erection = 100;
                 }
 
-            } else if (gamepad2.y) {
+            } else if (gamepad2.b) {
                 wrist.setPosition(grabpos);
                 grabout.setPosition(0.9);
                 liftRight.setTargetPosition((int) toplift);
@@ -391,9 +401,9 @@ class GameObjectController {
                 grab = false;
                 given = false;
                 grabout.setPosition(0.725);
-                wrist.setPosition(0.1);
-                grabout.setPosition(0.725);
+
                 onTheway = false;
+                releaseTime = time.milliseconds();
 
             }
         }
