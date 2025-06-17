@@ -201,17 +201,17 @@ class GameObjectController {
     private double lasterect = 0;
     private double espeed = 0;
     private boolean onTheway = false;
-    public static double wristDown = 0.1;
-    public static double wristUp = 1;
+    public static double wristDown = 1;
+    public static double wristUp = 0.6;
     public static double wait = 250;
     public static double liftpos = 365;
     public static double liftpick = 365;
     public static double posl = 0.22;
     public static double posr = 0.80;
-    public static double kp = 0.02;
-    public static double ki = 0.009;
-    public static double kd = 0.001;
-    public static double erectspeed = 10.0;
+    public static double kp = 0.034;
+    public static double ki = 0.00025;
+    public static double kd = 0.000004;
+    public static double erectspeed = 25.0;
     public static double gotoheil = 0;
     public static double toplift = 2900;
     public static double topheil = 490;
@@ -222,12 +222,13 @@ class GameObjectController {
     private int erection = 55;
     public static int finishErection = 60;
     private double pos = 0;
-    public  static double grabpos = 0.5;
     private boolean given = false;
+    private boolean hasReset = false;
+    public static double maxspeed = 5;
     AnalogInput diffleft = null;
     AnalogInput diffright = null;
-    private PIDController erectpid = new PIDController(kp, ki, kd);
-    private PIDController heilpid = new PIDController(0.0028,0.0013,0.00035);
+    private PIDController erectpid = new PIDController(0.01,0.0,0.0005);
+    private PIDController heilpid = new PIDController(0.0028, 0.0013, 0.00035);
     public void init(HardwareMap hardwareMap){
         diffleft = hardwareMap.get(AnalogInput.class, "diffleft");
         diffright = hardwareMap.get(AnalogInput.class, "diffright");
@@ -264,13 +265,29 @@ class GameObjectController {
     public void update(Gamepad gamepad2, Telemetry telemetry){
         double diflpos = diffleft.getVoltage() / 3.3 * 360;
         double difrpos = diffright.getVoltage() / 3.3 * 360;
-        erectpid.setParams(kp, ki, kd);
+
+        //erectpid.setParams(kp, ki, kd);
 
         if (!lasta & gamepad2.a) {
-            if (pasing) {pasing = false;}
+            if (pasing & !onTheway) {
+                pasing = false;
+                grab = false;
+                given = false;
+                grabout.setPosition(0.725);
+                onTheway = false;
+                up = true;
+                diffl.setPosition(0.3);
+                diffr.setPosition(0.9);
+                erectpid.reset();
+                hasReset = false;
+                pos = 55;
+                erectpid.setParams(0.01,0.0,0.0005);
+
+            }
             else {
                 pasing = true;
                 grab = false;
+
             }
         }
 
@@ -303,16 +320,16 @@ class GameObjectController {
                     if (155 < diflpos & diflpos < 215 & 90 < difrpos & difrpos < 155) {
                         if (172 < diflpos & diflpos < 180 & 111 < difrpos & difrpos < 119) {
                             completeMid = true;
-                            diffl.setPosition(0.2);
-                            diffr.setPosition(0.8);
+                            diffl.setPosition(0.3);
+                            diffr.setPosition(0.9);
                         } else {
                             diffl.setPosition(0.515);
                             diffr.setPosition(0.705);
                         }
                     }
                 } else {
-                    diffl.setPosition(0.2);
-                    diffr.setPosition(0.8);
+                    diffl.setPosition(0.3);
+                    diffr.setPosition(0.9);
                 }
             } else {
                 diffl.setPosition(0.49 - (0.09 * gamepad2.left_stick_x));
@@ -360,7 +377,7 @@ class GameObjectController {
                 grabout.setPosition(0.725);
             }
 
-            if (erect.getCurrentPosition() > -finishErection-5 & erect.getCurrentPosition() < -finishErection+5 & 332 < diflpos & diflpos < 342 & 14 < difrpos & difrpos < 24 & liftRight.getCurrentPosition() < liftpick+5 & liftRight.getCurrentPosition() > liftpick-5 & heil.getCurrentPosition() > -5 & heil.getCurrentPosition() < 5) {
+            if (espeed < maxspeed & erection == finishErection & erect.getCurrentPosition() > -finishErection-5 & erect.getCurrentPosition() < -finishErection+5 & 332 < diflpos & diflpos < 342 & 14 < difrpos & difrpos < 24 & liftRight.getCurrentPosition() < liftpick+5 & liftRight.getCurrentPosition() > liftpick-5 & heil.getCurrentPosition() > -5 & heil.getCurrentPosition() < 5) {
                 grab = true;
                 given = true;
 
@@ -376,20 +393,25 @@ class GameObjectController {
                 if (!grab) {
                     grabout.setPosition(0.725);
                 }
-                wrist.setPosition(wristUp);
+                wrist.setPosition(wristDown);
                 liftRight.setTargetPosition((int)liftpick);
                 liftLeft.setTargetPosition((int)liftpick);
                 diffl.setPosition(0.02);
                 diffr.setPosition(1.0);
+                erectpid.setParams(0.0002,0.002,0.025);
+                if (!hasReset) {
+                    erectpid.reset();
+                    hasReset = true;
+                }
 
                 if (332 < diflpos & diflpos < 342 & 14 < difrpos & difrpos < 24) {
                     erection = finishErection;
                 } else {
-                    erection = 100;
+                    erection = 150;
                 }
 
             } else if (gamepad2.b) {
-                wrist.setPosition(grabpos);
+                wrist.setPosition(wristUp);
                 grabout.setPosition(0.9);
                 liftRight.setTargetPosition((int) toplift);
                 liftLeft.setTargetPosition((int) toplift);
@@ -404,6 +426,13 @@ class GameObjectController {
 
                 onTheway = false;
                 releaseTime = time.milliseconds();
+                up = true;
+                diffl.setPosition(0.3);
+                diffr.setPosition(0.9);
+                erectpid.reset();
+                hasReset = false;
+                pos = 55;
+                erectpid.setParams(0.01,0.0,0.0005);
 
             }
         }
