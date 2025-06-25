@@ -181,6 +181,7 @@ public class TeleopDrive extends LinearOpMode {
 @Config
 class GameObjectController {
     private ElapsedTime time = new ElapsedTime();
+    private double last_time = 0;
     private DcMotor erect = null;
     private DcMotor liftLeft = null;
     private DcMotor liftRight = null;
@@ -447,8 +448,11 @@ class GameObjectController {
         espeed = lasterect - erect.getCurrentPosition();
         lasterect = erect.getCurrentPosition();
 
+
+        telemetry.addData("fps: ", 1/(time.seconds()-last_time));
         telemetry.addData("uitschuif goto :", erection);
         telemetry.addData("uitschuif pos  :", erect.getCurrentPosition());
         telemetry.addData("uitschuif speed:", espeed);
+        last_time = time.seconds();
     }
 }
