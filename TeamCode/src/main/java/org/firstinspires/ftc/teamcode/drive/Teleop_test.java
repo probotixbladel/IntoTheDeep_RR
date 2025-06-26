@@ -203,23 +203,24 @@ class GameObjectController1 {
     private double lasterect = 0;
     private double espeed = 0;
     private boolean onTheway = false;
-    public static double wristDown = 0.725;
+    public static double wristDown = 0.6;
     public static double wristUp = 0.2;
-    public static double wristFin = 0.17;
+    public static double wristFin = 0.75;
     public static double wait = 250;
-    public static double liftpos = 355;
-    public static double liftpick = 355;
+    public static double liftpos = 520;
+    public static double liftpick = 520;
     public static double posl = 0.22;
     public static double posr = 0.80;
-    public static double kp = 0.01;
-    public static double ki = 0.0;
-    public static double kd = 0.0001;
+    public static double kp = 0.02;
+    public static double ki = 0.00;
+    public static double kd = 0.0;
+    public static double kf = 0.1;
     public static double erectspeed = 25.0;
     public static double outClose = 0.75;
     public static double outOpen = 0.5;
     public static double gotoheil = 0;
     public static double toplift = 2900;
-    public static double topheil = 490;
+    public static double topheil = 500;
     public static boolean target = false;
     private final double ticksInDegree = 450 / 180.0;
     private boolean holding = false;
@@ -227,31 +228,34 @@ class GameObjectController1 {
     public static boolean grab = false;
     private int erection = 55;
     private boolean pasing = false;
-    public static int finishErection = 75;
+    public static int finishErection = 125;
     public static int heilwait = 150;
     public static int liftw = 30;
     public static int liftwait = 5;
-    public static int heilfin = 200;
-    public static int liftfin = 240;
+    public static int heilfin = 115;
+    public static int liftfin = 1450;
     public static int max_fps = 30;
     private double pos = 0;
     private boolean given = false;
     private boolean hasReset = false;
     public static double maxspeed = 20;
     private boolean doingSample = true;
+    public static double got = 50;
     private boolean lastDleft = false;
     private boolean grabu = false;
     public static double wristMid = 240;
     private boolean pulling = false;
     private boolean at_posision;
     public static  boolean doReset = true;
+    public static  double max_heil = 0.5;
     public static double releasePoint = 35;
     //public static double angle = 0.8;
     AnalogInput diffleft = null;
     AnalogInput diffright = null;
     AnalogInput wristAngle = null;
     private PIDController erectpid = new PIDController(0.01,0.0,0.0005);
-    private PIDController heilpid = new PIDController(0.0028, 0.0013, 0.00035);
+    private PIDController heilpid = new PIDController(0.008, 0.0, 0.0005);
+    //heilpid.setParams(0.0028, 0.0013, 0.00035);
     public void init(HardwareMap hardwareMap){
         diffleft = hardwareMap.get(AnalogInput.class, "diffleft");
         diffright = hardwareMap.get(AnalogInput.class, "diffright");
@@ -419,32 +423,34 @@ class GameObjectController1 {
                     telemetry.addData("hehe", 0);
                 } else if (holding & !pasing) {
                     grabout.setPosition(outClose);
-                    if (gamepad2.b){
+                    if (gamepad2.b) {
                         wrist.setPosition(wristFin);
                         pasing = true;
-                        gotoheil = heilwait;
-                        liftLeft.setTargetPosition(liftwait);
-                        liftRight.setTargetPosition(liftwait);
+
+                        liftLeft.setTargetPosition(liftfin);
+                        liftRight.setTargetPosition(liftfin);
                     }
-                } else if (gamepad2.y) {
+                } else if (liftLeft.getCurrentPosition() > 1000 & gotoheil != heilfin) {
                     gotoheil = heilfin;
-                    liftLeft.setTargetPosition(liftfin);
-                    liftRight.setTargetPosition(liftfin);
-                    wrist.setPosition(wristFin);
-                    pulling = true;
-                } else if (pulling) {
+                } else if (gamepad2.y) {
+                    //gotoheil = heilfin;
+                    //liftLeft.setTargetPosition(liftfin);
+                    //liftRight.setTargetPosition(liftfin);
+                    //wrist.setPosition(wristFin);
+                    //pulling = true;
+                    //} else if (pulling) {
                     //if (!at_posision &  liftRight.getCurrentPosition() < liftfin + 10 & liftRight.getCurrentPosition() > liftfin - 10 & heil.getCurrentPosition() < heilfin) {
                     //    at_posision = true;
                     //}
-                    if (wrista > wristMid + releasePoint) {
-                        grabout.setPosition(outOpen);
-                        releaseTime = time.milliseconds();
-                        holding = false;
-                        pasing = false;
-                        pulling = false;
-                        //at_posision = false;
-                    }
+                    //if (wrista > wristMid + releasePoint) {
+                    grabout.setPosition(outOpen);
+                    releaseTime = time.milliseconds();
+                    holding = false;
+                    pasing = false;
+                    pulling = false;
+                    //at_posision = false;
                 }
+            }
                 //pickup
                 //lift 70
                 //heil 665
@@ -455,7 +461,7 @@ class GameObjectController1 {
                 //heil 210
                 //lift 2
                 //servo 0.6 160
-            }
+
 
         }else if (doingSample) {
             if (grab) {
@@ -467,7 +473,7 @@ class GameObjectController1 {
                 grabout.setPosition(outOpen);
             }
 
-            if (espeed < maxspeed & erection == finishErection & erect.getCurrentPosition() > -finishErection-5 & erect.getCurrentPosition() < -finishErection+5 & 332 < diflpos & diflpos < 342 & 14 < difrpos & difrpos < 24 & liftRight.getCurrentPosition() < liftpick+5 & liftRight.getCurrentPosition() > liftpick-5 & heil.getCurrentPosition() > -5 & heil.getCurrentPosition() < 5) {
+            if (espeed < maxspeed & erection == finishErection & erect.getCurrentPosition() > -finishErection-7 & erect.getCurrentPosition() < -finishErection+7 & 332 < diflpos & diflpos < 342 & 14 < difrpos & difrpos < 24 & liftRight.getCurrentPosition() < liftpick+5 & liftRight.getCurrentPosition() > liftpick-5 & heil.getCurrentPosition() > -8 & heil.getCurrentPosition() < 8) {
                 grab = true;
                 given = true;
 
@@ -499,9 +505,10 @@ class GameObjectController1 {
                 if (332 < diflpos & diflpos < 342 & 14 < difrpos & difrpos < 24 & espeed < maxspeed & erection != finishErection) {
                     erection = finishErection;
                     if (doReset) {erectpid.reset();}
+                    //erectpid.setParams(0.01,0.00025,0.00008);
                     erectpid.setParams(kp,ki,kd);
                 } else if (erection != finishErection) {
-                    erection = 160;
+                    erection = 215;
                 }
 
             } else if (gamepad2.b) {
@@ -546,8 +553,9 @@ class GameObjectController1 {
         lastgrabn = gamepad2.left_bumper;
         lastup = up;
 
-        heilpid.setParams(0.0028, 0.0013, 0.00035);
-        heil.setPower((Math.sin(Math.toRadians(heil.getCurrentPosition() / ticksInDegree + 45)) * 0.12) + heilpid.update(gotoheil, heil.getCurrentPosition()));
+        //heilpid.setParams(0.0028, 0.0013, 0.00035);heilpid.setParams(kp,ki,kd);
+        //gotoheil = got;
+        heil.setPower(Math.max(-max_heil, Math.min(max_heil,(Math.sin(Math.toRadians(heil.getCurrentPosition() / ticksInDegree + 40)) * kf) + heilpid.update(gotoheil, heil.getCurrentPosition()))));
 
         erect.setPower(erectpid.update(-erection, erect.getCurrentPosition()));
 
