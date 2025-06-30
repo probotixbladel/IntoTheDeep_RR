@@ -205,15 +205,15 @@ class GameObjectController1 {
     private boolean onTheway = false;
     public static double wristDown = 0.6;
     public static double wristUp = 0.2;
-    public static double wristFin = 0.75;
+    public static double wristFin = 0.63;
     public static double wait = 250;
     public static double liftpos = 520;
     public static double liftpick = 520;
     public static double posl = 0.22;
     public static double posr = 0.80;
-    public static double kp = 0.02;
-    public static double ki = 0.00;
-    public static double kd = 0.0;
+    public static double kp = 0.003;
+    public static double ki = 0.002;
+    public static double kd = 0.0004;
     public static double kf = 0.1;
     public static double erectspeed = 25.0;
     public static double outClose = 0.75;
@@ -232,8 +232,8 @@ class GameObjectController1 {
     public static int heilwait = 150;
     public static int liftw = 30;
     public static int liftwait = 5;
-    public static int heilfin = 115;
-    public static int liftfin = 1450;
+    public static int heilfin = 125;
+    public static int liftfin = 1500;
     public static int max_fps = 30;
     private double pos = 0;
     private boolean given = false;
@@ -506,7 +506,7 @@ class GameObjectController1 {
                     erection = finishErection;
                     if (doReset) {erectpid.reset();}
                     //erectpid.setParams(0.01,0.00025,0.00008);
-                    erectpid.setParams(kp,ki,kd);
+                    erectpid.setParams(0.02,0,0);
                 } else if (erection != finishErection) {
                     erection = 215;
                 }
@@ -553,7 +553,8 @@ class GameObjectController1 {
         lastgrabn = gamepad2.left_bumper;
         lastup = up;
 
-        //heilpid.setParams(0.0028, 0.0013, 0.00035);heilpid.setParams(kp,ki,kd);
+        //heilpid.setParams(0.0028, 0.0013, 0.00035);
+        heilpid.setParams(kp,ki,kd);
         //gotoheil = got;
         heil.setPower(Math.max(-max_heil, Math.min(max_heil,(Math.sin(Math.toRadians(heil.getCurrentPosition() / ticksInDegree + 40)) * kf) + heilpid.update(gotoheil, heil.getCurrentPosition()))));
 
