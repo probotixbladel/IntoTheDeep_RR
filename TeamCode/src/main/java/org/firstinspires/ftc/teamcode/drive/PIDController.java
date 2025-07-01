@@ -43,6 +43,9 @@ public class PIDController {
         timer.reset();
         return out;
 
+    } public void Ri(double i) {
+        integralSum = 0;
+        ki = i;
     }
 
     public void reset() {

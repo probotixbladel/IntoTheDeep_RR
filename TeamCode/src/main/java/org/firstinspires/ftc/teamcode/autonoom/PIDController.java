@@ -21,6 +21,7 @@ public class PIDController {
         kd = Kd;
     }
 
+
     /**
      * update the PID controller output
      * @param target where we would like to be, also called the reference
@@ -45,8 +46,13 @@ public class PIDController {
         return out;
 
     }
+    public void Ri(double i) {
+        integralSum = 0;
+        ki = i;
+    }
 
-    public void reset() {
+
+public void reset() {
         integralSum = 0;
         lastError = 0;
         timer.reset();

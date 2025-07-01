@@ -28,6 +28,7 @@
  */
 
 package org.firstinspires.ftc.teamcode.drive;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -43,6 +44,13 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import org.firstinspires.ftc.teamcode.drive.PIDController;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
+import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.ftc.Actions;
 
 import java.lang.Math;
 
@@ -190,6 +198,7 @@ class GameObjectController1 {
     private Servo diffl = null;
     private Servo diffr = null;
     private Servo grabin = null;
+    public double w = 0.25;
     private Servo wrist = null;
     private Servo grabout = null;
     private boolean up = false;
@@ -203,23 +212,23 @@ class GameObjectController1 {
     private double lasterect = 0;
     private double espeed = 0;
     private boolean onTheway = false;
-    public static double wristDown = 0.6;
-    public static double wristUp = 0.2;
-    public static double wristFin = 0.63;
+    public static double wristDown = 0.32;
+    public static double wristUp = 0.025;
+    public static double wristFin =  0.45;
     public static double wait = 250;
-    public static double liftpos = 520;
-    public static double liftpick = 520;
+    public static double liftpos = 550;
+    public static double liftpick = 550;
     public static double posl = 0.22;
     public static double posr = 0.80;
-    public static double kp = 0.003;
-    public static double ki = 0.002;
-    public static double kd = 0.0004;
+    public static double kp = 0.035;
+    public static double ki = 0.01;
+    public static double kd = 0.0008;
     public static double kf = 0.1;
     public static double erectspeed = 25.0;
     public static double outClose = 0.75;
     public static double outOpen = 0.5;
     public static double gotoheil = 0;
-    public static double toplift = 2900;
+    public static double toplift = 2845;
     public static double topheil = 500;
     public static boolean target = false;
     private final double ticksInDegree = 450 / 180.0;
@@ -249,6 +258,8 @@ class GameObjectController1 {
     public static  boolean doReset = true;
     public static  double max_heil = 0.5;
     public static double releasePoint = 35;
+    public static double i_tollerance = 10;
+    private boolean in_range =false;
     //public static double angle = 0.8;
     AnalogInput diffleft = null;
     AnalogInput diffright = null;
@@ -476,6 +487,7 @@ class GameObjectController1 {
             if (espeed < maxspeed & erection == finishErection & erect.getCurrentPosition() > -finishErection-7 & erect.getCurrentPosition() < -finishErection+7 & 332 < diflpos & diflpos < 342 & 14 < difrpos & difrpos < 24 & liftRight.getCurrentPosition() < liftpick+5 & liftRight.getCurrentPosition() > liftpick-5 & heil.getCurrentPosition() > -8 & heil.getCurrentPosition() < 8) {
                 grab = true;
                 given = true;
+                Actions.runBlocking(new SleepAction(w));
 
                 grabout.setPosition(outClose);
                 grabin.setPosition(0.69);
@@ -506,7 +518,7 @@ class GameObjectController1 {
                     erection = finishErection;
                     if (doReset) {erectpid.reset();}
                     //erectpid.setParams(0.01,0.00025,0.00008);
-                    erectpid.setParams(0.02,0,0);
+                    erectpid.setParams(kp,ki,kd);
                 } else if (erection != finishErection) {
                     erection = 215;
                 }
@@ -552,11 +564,23 @@ class GameObjectController1 {
 
         lastgrabn = gamepad2.left_bumper;
         lastup = up;
-
-        //heilpid.setParams(0.0028, 0.0013, 0.00035);
-        heilpid.setParams(kp,ki,kd);
         //gotoheil = got;
-        heil.setPower(Math.max(-max_heil, Math.min(max_heil,(Math.sin(Math.toRadians(heil.getCurrentPosition() / ticksInDegree + 40)) * kf) + heilpid.update(gotoheil, heil.getCurrentPosition()))));
+        //heilpid.setParams(0.0028, 0.0013, 0.00035);
+        if (Math.abs(gotoheil - heil.getCurrentPosition()) < i_tollerance) {
+            if (!in_range) {
+                in_range = true;
+                heilpid.Ri(0.01);
+            }
+            heilpid.setParams(0.015,0.01,0.00055);
+        } else {
+            if (in_range) {
+                in_range = false;
+                heilpid.Ri(0);
+            }
+            heilpid.setParams(0.015,0,0.00055);
+        }
+        heil.setPower(Math.max(-max_heil, Math.min(max_heil,(Math.sin(Math.toRadians(gotoheil / ticksInDegree + 40)) * 0.1) + heilpid.update(gotoheil, heil.getCurrentPosition()))));
+
 
         erect.setPower(erectpid.update(-erection, erect.getCurrentPosition()));
 
