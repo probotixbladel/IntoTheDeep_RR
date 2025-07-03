@@ -59,8 +59,8 @@ public class AutoSpecimen extends LinearOpMode {
         public  double kd = 0.0002;
         public double kf = 0.1;
         public double erectspeed = 25.0;
-        public double outClose = 0.75;
-        public double outOpen = 0.5;
+        public double outClose = 0.67;
+        public double outOpen = 0.45;
         public double gotoheil = 0;
         public double toplift = 2900;
         public double topheil = 500;
@@ -368,7 +368,7 @@ public class AutoSpecimen extends LinearOpMode {
                                         new SequentialAction(
                                                 new SleepAction(0.1),
                                                 drive.actionBuilder(initialPose)
-                                                         .strafeToConstantHeading(new Vector2d(-6, -31.5))
+                                                         .strafeToConstantHeading(new Vector2d(-6, -31))
                                                          .build()
                                        ),
                                        Objcon.deliver()
@@ -376,11 +376,11 @@ public class AutoSpecimen extends LinearOpMode {
                                 ),
                                 Objcon.release(),
                                 Objcon.pickup(),
-                                drive.actionBuilder(new Pose2d(new Vector2d(-6, -33), Math.toRadians(90)))
+                                drive.actionBuilder(new Pose2d(new Vector2d(-6, -31.5), Math.toRadians(90)))
                                         .splineToConstantHeading(new Vector2d(0, -44),Math.toRadians(90),speedv)
                                         //.splineToConstantHeading(new Vector2d(33, -40), Math.toRadians(0),speedv,speeda)
                                         //.splineToConstantHeading(new Vector2d(45, -25), Math.toRadians(90))//,speedv,speeda)
-                                        .splineToConstantHeading(new Vector2d(30.80, -46.98), Math.toRadians(0))
+                                        .splineToConstantHeading(new Vector2d(28., -46.98), Math.toRadians(0))
                                         .splineToConstantHeading(new Vector2d(42, -20), Math.toRadians(0))
                                         .splineToConstantHeading(new Vector2d(48, -18), Math.toRadians(0))
                                         .splineToConstantHeading(new Vector2d(48, -18), Math.toRadians(0))
@@ -395,53 +395,53 @@ public class AutoSpecimen extends LinearOpMode {
                                         .strafeToConstantHeading(new Vector2d(38, -61 ))
                                         //.splineToConstantHeading(new Vector2d(50, -15), Math.toRadians(0),speedv,speeda)
                                         .build(),
-                                new SleepAction(0.15),
+                                new SleepAction(0.1),
                                 Objcon.pick(),
                                 new SleepAction(0.25),
                                 new ParallelAction(
                                     Objcon.deliver(),
                                     drive.actionBuilder(new Pose2d(new Vector2d(38, -61),Math.toRadians(90)))
                                             .strafeToConstantHeading(new Vector2d(-2, -38),speedv,speeda)
-                                            .strafeToConstantHeading(new Vector2d(-2, -32),speedv,speeda)
+                                            .strafeToConstantHeading(new Vector2d(-2, -31.5),speedv,speeda)
                                             .build()
                                 ),
-                                new SleepAction(0.15),
+                                new SleepAction(0.1),
                                 Objcon.release(),
                                 Objcon.pickup(),
                                 drive.actionBuilder(new Pose2d(new Vector2d(2, -34),Math.toRadians(90)))
                                         .strafeToConstantHeading(new Vector2d(38, -60.5),speedv,speeda)
                                         .build(),
-                                new SleepAction(0.25),
+                                new SleepAction(0.2),
                                 Objcon.pick(),
                                 new SleepAction(0.25),
                                 new ParallelAction(
                                         Objcon.deliver(),
                                         drive.actionBuilder(new Pose2d(new Vector2d(38, -61),Math.toRadians(90)))
                                                 .strafeToConstantHeading(new Vector2d(1, -38),speedv,speeda)
-                                                .strafeToConstantHeading(new Vector2d(1, -32),speedv,speeda)
+                                                .strafeToConstantHeading(new Vector2d(1, -31.5),speedv,speeda)
                                             .build()
                                 ),
-                                new SleepAction(0.15),
+                                new SleepAction(0.1),
                                 Objcon.release(),
 
                                 Objcon.pickup(),
                                 drive.actionBuilder(new Pose2d(new Vector2d(2, -34),Math.toRadians(90)))
                                         .strafeToConstantHeading(new Vector2d(38, -60),speedv,speeda)
                                         .build(),
-                                new SleepAction(0.25),
+                                new SleepAction(0.2),
                                 Objcon.pick(),
                                 new SleepAction(0.25),
                                 new ParallelAction(
                                         Objcon.deliver(),
                                         drive.actionBuilder(new Pose2d(new Vector2d(38, -61),Math.toRadians(90)))
                                                 .strafeToConstantHeading(new Vector2d(3, -38),speedv,speeda)
-                                                .strafeToConstantHeading(new Vector2d(3, -32),speedv,speeda)
+                                                .strafeToConstantHeading(new Vector2d(3, -31.5),speedv,speeda)
                                                 .build()
                                 ),
-                                new SleepAction(0.15),
+                                new SleepAction(0.1),
                                 Objcon.release(),
                                 new ParallelAction(
-                                        drive.actionBuilder(new Pose2d(new Vector2d(3, -32),Math.toRadians(90)))
+                                        drive.actionBuilder(new Pose2d(new Vector2d(3, -31.5),Math.toRadians(90)))
                                                 .strafeToConstantHeading(new Vector2d(62, -62),speedv,speeda)
                                                 .build(),
                                         new SequentialAction(

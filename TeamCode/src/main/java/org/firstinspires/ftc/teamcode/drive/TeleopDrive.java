@@ -28,6 +28,7 @@
  */
 
 package org.firstinspires.ftc.teamcode.drive;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -43,6 +44,13 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import org.firstinspires.ftc.teamcode.drive.PIDController;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
+import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.ftc.Actions;
 
 import java.lang.Math;
 
@@ -88,14 +96,15 @@ public class TeleopDrive extends LinearOpMode {
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
-    public static double gearshift = 0.25;
-    public static double turnspeed = 0.4;
+    public static double gearshift = 1.2;
+    public static double turnspeed = 1.0;
     private boolean init = false;;
-    public static double pow = 2.3;
+    public static double pow = 2.7;
+    public static double pow_turn = 2.7;
     public static double Ks = 0.4;
 
-    private double controller(double x, double gearshift) {
-        return (Math.pow(Math.abs(x) * (1-Ks) * gearshift + Ks, pow) * Math.signum(x));
+    private double controller(double x, double gearshift, double power) {
+        return (Math.pow(Math.abs(x) * (1-Ks) * gearshift + Ks, power) * Math.signum(x));
     }
     private GameObjectController Objcon = new GameObjectController();
 
@@ -129,9 +138,9 @@ public class TeleopDrive extends LinearOpMode {
             }
             double max;
 
-            double axial   = -controller(gamepad1.left_stick_y, gearshift);
-            double lateral =  controller(gamepad1.left_stick_x, gearshift);
-            double yaw     =  controller(gamepad1.right_stick_x, turnspeed);
+            double axial   = -controller(gamepad1.left_stick_y, gearshift, pow);
+            double lateral =  controller(gamepad1.left_stick_x, gearshift, pow);
+            double yaw     =  controller(gamepad1.right_stick_x, turnspeed, pow_turn);
 
 
             double leftFrontPower  = (axial + lateral + yaw);
@@ -162,7 +171,7 @@ public class TeleopDrive extends LinearOpMode {
                 turnspeed = 0.8;
             } else if (gamepad1.y == true) {
                 gearshift = 1.0;
-                turnspeed = 1.0;
+                turnspeed = 1.2;
             }
 
             leftFrontDrive.setPower(leftFrontPower);
@@ -182,6 +191,7 @@ public class TeleopDrive extends LinearOpMode {
 class GameObjectController {
     private ElapsedTime time = new ElapsedTime();
     private double last_time = 0;
+    private double last_times = 0;
     private DcMotor erect = null;
     private DcMotor liftLeft = null;
     private DcMotor liftRight = null;
@@ -189,10 +199,11 @@ class GameObjectController {
     private Servo diffl = null;
     private Servo diffr = null;
     private Servo grabin = null;
+    public static double w = 0.1;
     private Servo wrist = null;
     private Servo grabout = null;
     private boolean up = false;
-    private boolean pasing = false;
+    private boolean scoring = false;
     private boolean lastup = false;
     private boolean grabn = false;
     private boolean lasta = false;
@@ -202,37 +213,66 @@ class GameObjectController {
     private double lasterect = 0;
     private double espeed = 0;
     private boolean onTheway = false;
-    public static double wristDown = 1;
-    public static double wristUp = 0.6;
+    public static double wristDown = 0.2;
+    public static double wristUp = 0.025;
+    public static double wristFin =  0.45;
     public static double wait = 250;
-    public static double liftpos = 365;
-    public static double liftpick = 365;
+    public static double liftpos = 180;
+    public static double liftpick = 180;
     public static double posl = 0.22;
     public static double posr = 0.80;
-    public static double kp = 0.034;
-    public static double ki = 0.00025;
-    public static double kd = 0.000004;
+    public static double kp = 0.035;
+    public static double ki = 0.01;
+    public static double kd = 0.0008;
+    public static double kf = 0.1;
     public static double erectspeed = 25.0;
+    public static double outClose = 0.7;
+    public static double outOpen = 0.45;
     public static double gotoheil = 0;
-    public static double toplift = 2900;
-    public static double topheil = 490;
+    public static double toplift = 2845;
+    public static double topheil = 530;
     public static boolean target = false;
     private final double ticksInDegree = 450 / 180.0;
+    private boolean holding = false;
     private double releaseTime = 0;
     public static boolean grab = false;
-    private int erection = 55;
-    public static int finishErection = 60;
+    private int erection = 90;
+    private boolean pasing = false;
+    public static int finishErection = 200;
+    public static int heilwait = 180;
+    public static int liftw = 30;
+    public static int liftwait = 5;
+    public static int heilfin = 155;
+    public static int liftfin = 1500;
+    public static int max_fps = 30;
     private double pos = 0;
     private boolean given = false;
     private boolean hasReset = false;
-    public static double maxspeed = 5;
+    public static double maxspeed = 20;
+    private boolean doingSample = true;
+    public static double got = 50;
+    private boolean lastDleft = false;
+    private boolean grabu = false;
+    private boolean pulling = false;
+    private boolean at_posision;
+    public static  boolean doReset = true;
+    public static  double max_heil = 0.5;
+    public static double releasePoint = 35;
+    public static double i_tollerance = 10;
+    private boolean transfuring = false;
+    public static double t_power = 0.5;
+    private boolean in_range =false;
+    //public static double angle = 0.8;
     AnalogInput diffleft = null;
     AnalogInput diffright = null;
+    AnalogInput wristAngle = null;
     private PIDController erectpid = new PIDController(0.01,0.0,0.0005);
-    private PIDController heilpid = new PIDController(0.0028, 0.0013, 0.00035);
+    private PIDController heilpid = new PIDController(0.008, 0.0, 0.0005);
+    //heilpid.setParams(0.0028, 0.0013, 0.00035);
     public void init(HardwareMap hardwareMap){
         diffleft = hardwareMap.get(AnalogInput.class, "diffleft");
         diffright = hardwareMap.get(AnalogInput.class, "diffright");
+        wristAngle = hardwareMap.get(AnalogInput.class, "wristAngle");
         liftLeft = hardwareMap.get(DcMotor.class, "liftLeft");
         liftRight = hardwareMap.get(DcMotor.class, "liftRight");
         erect = hardwareMap.get(DcMotor.class, "erect");
@@ -266,39 +306,57 @@ class GameObjectController {
     public void update(Gamepad gamepad2, Telemetry telemetry){
         double diflpos = diffleft.getVoltage() / 3.3 * 360;
         double difrpos = diffright.getVoltage() / 3.3 * 360;
+        double wrista = wristAngle.getVoltage() / 3.3 * 360;
 
         //erectpid.setParams(kp, ki, kd);
 
         if (!lasta & gamepad2.a) {
-            if (pasing & !onTheway) {
-                pasing = false;
-                grab = false;
-                given = false;
-                grabout.setPosition(0.725);
-                onTheway = false;
-                up = true;
-                diffl.setPosition(0.3);
-                diffr.setPosition(0.9);
-                erectpid.reset();
-                hasReset = false;
-                pos = 55;
-                erectpid.setParams(0.01,0.0,0.0005);
+            if (doingSample) {
+                if (scoring & !onTheway) {
+                    scoring = false;
+                    grab = false;
+                    given = false;
+                    grabout.setPosition(0.725);
+                    onTheway = false;
+                    up = true;
+                    diffl.setPosition(0.37);
+                    diffr.setPosition(0.79);
+                    erectpid.reset();
+                    hasReset = false;
+                    pos = 55;
+                    erectpid.setParams(0.01,0.0,0.0005);
 
-            }
-            else {
-                pasing = true;
-                grab = false;
+                }
+                else {
+                    scoring = true;
+                    grab = false;
 
+                }
+            } else {
+                if (!pasing) {
+                    if (holding) {holding = false;}
+                    else if (!holding) {holding = true;}
+                }
             }
         }
-
+        espeed = Math.abs(60*(time.seconds()-last_times)*(lasterect - erect.getCurrentPosition()));
+        last_times =time.seconds();
+        lasterect = erect.getCurrentPosition();
         lasta = gamepad2.a;
-        if (!pasing) {
-            grabout.setPosition(0.725);
+        if (!scoring) {
+            transfuring = false;
+            if (gamepad2.dpad_left & !lastDleft) {
+                if (doingSample) {doingSample = false;}
+                else if (!doingSample) {
+                    doingSample = true;
+                }
+            }
+            lastDleft = gamepad2.dpad_left;
+
 
             pos += Math.pow(gamepad2.right_trigger, 1.5) * erectspeed - Math.pow(gamepad2.left_trigger, 1.5) * erectspeed;
-            if (pos < 55) {
-                pos = 55;
+            if (pos < 120) {
+                pos = 120;
             }
             if (pos > 420) {
                 pos = 420;
@@ -318,26 +376,25 @@ class GameObjectController {
 
             if (up) {
                 if (!completeMid) {
-                    if (155 < diflpos & diflpos < 215 & 90 < difrpos & difrpos < 155) {
-                        if (172 < diflpos & diflpos < 180 & 111 < difrpos & difrpos < 119) {
+                    if (110 < diflpos & diflpos < 200 & 110 < difrpos & difrpos < 200) {
+                        if (140 < diflpos & diflpos < 160 & 140 < difrpos & difrpos < 160) {
                             completeMid = true;
-                            diffl.setPosition(0.3);
-                            diffr.setPosition(0.9);
+                            diffl.setPosition(0.37);
+                            diffr.setPosition(0.79);
                         } else {
-                            diffl.setPosition(0.515);
-                            diffr.setPosition(0.705);
+                            diffl.setPosition(0.58);
+                            diffr.setPosition(0.58);
                         }
                     }
                 } else {
-                    diffl.setPosition(0.3);
-                    diffr.setPosition(0.9);
+                    diffl.setPosition(0.37);
+                    diffr.setPosition(0.79);
                 }
             } else {
-                diffl.setPosition(0.49 - (0.09 * gamepad2.left_stick_x));
-                diffr.setPosition(0.7 - (0.09 * gamepad2.left_stick_x));
+                diffl.setPosition(0.58 - (0.09 * gamepad2.left_stick_x));
+                diffr.setPosition(0.58 - (0.09 * gamepad2.left_stick_x));
                 completeMid = false;
             }
-
             if (gamepad2.left_bumper & !lastgrabn) {
                 if (grabn) {
                     grabn = false;
@@ -345,7 +402,6 @@ class GameObjectController {
                     grabn = true;
                 }
             }
-
             if (!up) {
                 if (lastup) {
                     grabn = false;
@@ -360,99 +416,203 @@ class GameObjectController {
                 grabin.setPosition(1);
             }
 
-            if (time.milliseconds() - releaseTime > wait) {
-                wrist.setPosition(wristDown);
-                liftRight.setTargetPosition((int) liftpos);
-                liftLeft.setTargetPosition((int) liftpos);
-                gotoheil = 0;
+            if (doingSample) {
+                if (time.milliseconds() - releaseTime > wait) {
+                    wrist.setPosition(wristDown);
+                    liftRight.setTargetPosition((int) liftpos);
+                    liftLeft.setTargetPosition((int) liftpos);
+                    gotoheil = 0;
+                    grabout.setPosition(outOpen);
+                }
+            } else {
+                if (!holding) {
+                    liftLeft.setTargetPosition(liftw);
+                    liftRight.setTargetPosition(liftw);
+                    grabout.setPosition(outOpen);
+                    if (time.milliseconds() - releaseTime > wait) {
+                        gotoheil = 695;
+                        wrist.setPosition(0.43);
+                    }
+                } else if (time.milliseconds() - releaseTime < wait) {
+                    telemetry.addData("hehe", 0);
+                } else if (holding & !pasing) {
+                    grabout.setPosition(outClose);
+                    if (gamepad2.b) {
+                        wrist.setPosition(wristFin);
+                        pasing = true;
 
+                        liftLeft.setTargetPosition(liftfin);
+                        liftRight.setTargetPosition(liftfin);
+                    }
+                } else if (liftLeft.getCurrentPosition() > 1000 & gotoheil != heilfin) {
+                    gotoheil = heilfin;
+                } else if (gamepad2.y) {
+                    //gotoheil = heilfin;
+                    //liftLeft.setTargetPosition(liftfin);
+                    //liftRight.setTargetPosition(liftfin);
+                    //wrist.setPosition(wristFin);
+                    //pulling = true;
+                    //} else if (pulling) {
+                    //if (!at_posision &  liftRight.getCurrentPosition() < liftfin + 10 & liftRight.getCurrentPosition() > liftfin - 10 & heil.getCurrentPosition() < heilfin) {
+                    //    at_posision = true;
+                    //}
+                    //if (wrista > wristMid + releasePoint) {
+                    grabout.setPosition(outOpen);
+                    releaseTime = time.milliseconds();
+                    holding = false;
+                    pasing = false;
+                    pulling = false;
+                    //at_posision = false;
+                }
             }
+            //pickup
+            //lift 70
+            //heil 665
+            //serv0 1.0 90
 
-        }else {
+            //horizontal 100
+
+            //heil 210
+            //lift 2
+            //servo 0.6 160
+
+
+        }else if (doingSample) {
             if (grab) {
-                grabout.setPosition(0.9);
+                grabout.setPosition(outClose);
                 grabin.setPosition(0.69);
             }
 
             if (!grab) {
-                grabout.setPosition(0.725);
+                grabout.setPosition(outOpen);
             }
 
-            if (espeed < maxspeed & erection == finishErection & erect.getCurrentPosition() > -finishErection-5 & erect.getCurrentPosition() < -finishErection+5 & 332 < diflpos & diflpos < 342 & 14 < difrpos & difrpos < 24 & liftRight.getCurrentPosition() < liftpick+5 & liftRight.getCurrentPosition() > liftpick-5 & heil.getCurrentPosition() > -5 & heil.getCurrentPosition() < 5) {
+            if (!given & espeed < maxspeed & erection == finishErection & erect.getCurrentPosition() > -finishErection-7 & erect.getCurrentPosition() > -finishErection-7 & 339 < diflpos & diflpos < 349 & 16 < difrpos & difrpos < 26 & liftRight.getCurrentPosition() < liftpick+5 & liftRight.getCurrentPosition() > liftpick-5 & heil.getCurrentPosition() > -8 & heil.getCurrentPosition() < 8) {
                 grab = true;
                 given = true;
-
-                grabout.setPosition(0.9);
+                grabout.setPosition(outClose);
                 grabin.setPosition(0.69);
+                Actions.runBlocking(new SleepAction(w));
+
+
             }
 
             if (!given) {
                 if (grab) {
-                    grabout.setPosition(0.9);
+                    grabout.setPosition(outClose);
                     grabin.setPosition(0.69);
                 }
                 if (!grab) {
-                    grabout.setPosition(0.725);
+                    grabout.setPosition(outOpen);
                 }
                 wrist.setPosition(wristDown);
                 liftRight.setTargetPosition((int)liftpick);
                 liftLeft.setTargetPosition((int)liftpick);
-                diffl.setPosition(0.02);
+                diffl.setPosition(0.0);
                 diffr.setPosition(1.0);
-                erectpid.setParams(0.02,0.008,0.001);
+
                 if (!hasReset) {
+                    erectpid.setParams(0.02,0.008,0.001);
                     erectpid.reset();
                     hasReset = true;
                 }
 
-                if (332 < diflpos & diflpos < 342 & 14 < difrpos & difrpos < 24) {
+
+                if (339 < diflpos & diflpos < 349 & 16 < difrpos & difrpos < 26 & espeed < maxspeed & erection != finishErection & liftRight.getCurrentPosition() < liftpick+100 & liftRight.getCurrentPosition() > liftpick-100 & heil.getCurrentPosition() > -20 & heil.getCurrentPosition() < 20) {
                     erection = finishErection;
-                } else {
-                    erection = 150;
+                    if (doReset) {erectpid.reset();}
+                    //erectpid.setParams(0.01,0.00025,0.00008);
+                    transfuring = true;
+                    //erectpid.setParams(kp,ki,kd);
+                } else if (erection != finishErection) {
+                    erection = 265;
                 }
 
             } else if (gamepad2.b) {
                 wrist.setPosition(wristUp);
-                grabout.setPosition(0.9);
+                grabout.setPosition(outClose);
                 liftRight.setTargetPosition((int) toplift);
                 liftLeft.setTargetPosition((int) toplift);
                 gotoheil = topheil;
                 onTheway = true;
+                transfuring = false;
 
-            } else if (gamepad2.dpad_left & onTheway & liftRight.getCurrentPosition() > toplift - 10 & liftRight.getCurrentPosition() < toplift + 10) {
-                pasing = false;
+            } else if (gamepad2.y & onTheway & liftRight.getCurrentPosition() > toplift - 100 & liftRight.getCurrentPosition() < toplift + 100) {
+                scoring = false;
                 grab = false;
                 given = false;
-                grabout.setPosition(0.725);
+                grabout.setPosition(outOpen);
 
                 onTheway = false;
                 releaseTime = time.milliseconds();
                 up = true;
-                diffl.setPosition(0.3);
-                diffr.setPosition(0.9);
+                diffl.setPosition(0.37);
+                diffr.setPosition(0.79);
                 erectpid.reset();
                 hasReset = false;
-                pos = 55;
+                pos = 120;
                 erectpid.setParams(0.01,0.0,0.0005);
 
             }
         }
 
+        //pickup
+        //lift 70
+        //heil 665
+        //serv0 1.0 90
+
+        //horizontal 100
+
+        //heil 210
+        //lift 2
+        //serv0 0.6 160
+
+
         lastgrabn = gamepad2.left_bumper;
         lastup = up;
+        //gotoheil = got;
+        //heilpid.setParams(0.0028, 0.0013, 0.00035);
+        if (Math.abs(gotoheil - heil.getCurrentPosition()) < i_tollerance) {
+            if (!in_range) {
+                in_range = true;
+                heilpid.Ri(0.01);
+            }
+            heilpid.setParams(0.015,0.01,0.00055);
+        } else {
+            if (in_range) {
+                in_range = false;
+                heilpid.Ri(0);
+            }
+            heilpid.setParams(0.015,0,0.00055);
+        }
+        heil.setPower(Math.max(-max_heil, Math.min(max_heil,(Math.sin(Math.toRadians((gotoheil-30) / ticksInDegree + 40)) * 0.1) + heilpid.update(gotoheil, heil.getCurrentPosition()))));
 
-        heilpid.setParams(0.0028, 0.0013, 0.00035);
-        heil.setPower((Math.sin(Math.toRadians(heil.getCurrentPosition() / ticksInDegree + 45)) * 0.12) + heilpid.update(gotoheil, heil.getCurrentPosition()));
 
-        erect.setPower(erectpid.update(-erection, erect.getCurrentPosition()));
-        espeed = lasterect - erect.getCurrentPosition();
-        lasterect = erect.getCurrentPosition();
+        //erect.setPower(erectpid.update(-erection, erect.getCurrentPosition()));
+        if (transfuring) {
+            if (erect.getCurrentPosition() < -200) {
+                erect.setPower(t_power);
+            } else if (erect.getCurrentPosition() < -190) {
+                erect.setPower(0.1);
+            } else {
+                erect.setPower(0.0);
+            }
+        } else {
+            erect.setPower(erectpid.update(-erection, erect.getCurrentPosition()));
+        }
 
+        while (1/(time.seconds()-last_time) > max_fps & !doingSample) {
 
+        }
         telemetry.addData("fps: ", 1/(time.seconds()-last_time));
+
         telemetry.addData("uitschuif goto :", erection);
         telemetry.addData("uitschuif pos  :", erect.getCurrentPosition());
         telemetry.addData("uitschuif speed:", espeed);
+
+        telemetry.addData("heil pos  :", heil.getCurrentPosition());
+        telemetry.addData("lift pos  :", liftRight.getCurrentPosition());
+        telemetry.addData("servo pos :", wristAngle.getVoltage() / 3.3 * 360);
         last_time = time.seconds();
     }
 }

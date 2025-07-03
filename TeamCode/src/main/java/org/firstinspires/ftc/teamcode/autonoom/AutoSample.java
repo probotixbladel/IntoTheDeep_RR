@@ -58,8 +58,8 @@ public class AutoSample extends LinearOpMode {
         public  double kd = 0.0002;
         public double kf = 0.1;
         public double erectspeed = 25.0;
-        public double outClose = 0.75;
-        public double outOpen = 0.5;
+        public double outClose = 0.67;
+        public double outOpen = 0.45;
         public double gotoheil = 0;
         public double toplift = 2900;
         public double topheil = 500;
@@ -454,16 +454,16 @@ public class AutoSample extends LinearOpMode {
                                 drive.actionBuilder(new Pose2d(new Vector2d(-53, -53), Math.toRadians(45)))
                                         .strafeToConstantHeading(new Vector2d(-58, -58))
                                         .build(),
-                                new  SleepAction(0.25),
-                                new ParallelAction(
-                                    drive.actionBuilder(new Pose2d(new Vector2d(-58, -58), Math.toRadians(45)))
-                                        .strafeToLinearHeading(new Vector2d(-24, -48), Math.toRadians(180),speedv,speeda)
-                                        .build(),
+                                //new  SleepAction(0.25),
+                                //new ParallelAction(
+                                //    drive.actionBuilder(new Pose2d(new Vector2d(-58, -58), Math.toRadians(45)))
+                                //        .strafeToLinearHeading(new Vector2d(-24, -48), Math.toRadians(180),speedv,speeda)
+                                //        .build(),
                                     Objcon.init()
-                                ),
-                                drive.actionBuilder(new Pose2d(new Vector2d(-12, -55), Math.toRadians(180)))
-                                        .splineToConstantHeading(new Vector2d(40, -63), Math.toRadians(180),speedv,speeda)
-                                        .build()
+                                //)
+                                //drive.actionBuilder(new Pose2d(new Vector2d(-12, -55), Math.toRadians(180)))
+                                //        .splineToConstantHeading(new Vector2d(40, -63), Math.toRadians(180),speedv,speeda)
+                                //        .build()
 
                                 ),
                         Objcon.update()

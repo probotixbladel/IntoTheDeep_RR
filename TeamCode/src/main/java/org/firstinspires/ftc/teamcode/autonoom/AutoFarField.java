@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 // Non-RR imports
 
-//@Disabled
+@Disabled
 @Autonomous(name = "AutoFarField", group = "Autonomous")
 public final class AutoFarField extends LinearOpMode {
     public class Lift {

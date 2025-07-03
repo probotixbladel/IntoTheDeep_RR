@@ -225,8 +225,8 @@ class GameObjectController1 {
     public static double kd = 0.0008;
     public static double kf = 0.1;
     public static double erectspeed = 25.0;
-    public static double outClose = 0.75;
-    public static double outOpen = 0.5;
+    public static double outClose = 0.67;
+    public static double outOpen = 0.45;
     public static double gotoheil = 0;
     public static double toplift = 2845;
     public static double topheil = 500;
@@ -484,7 +484,7 @@ class GameObjectController1 {
                 grabout.setPosition(outOpen);
             }
 
-            if (espeed < maxspeed & erection == finishErection & erect.getCurrentPosition() > -finishErection-7 & erect.getCurrentPosition() < -finishErection+7 & 332 < diflpos & diflpos < 342 & 14 < difrpos & difrpos < 24 & liftRight.getCurrentPosition() < liftpick+5 & liftRight.getCurrentPosition() > liftpick-5 & heil.getCurrentPosition() > -8 & heil.getCurrentPosition() < 8) {
+            if (!given & espeed < maxspeed & erection == finishErection & erect.getCurrentPosition() > -finishErection-7 & erect.getCurrentPosition() < -finishErection+7 & 332 < diflpos & diflpos < 342 & 14 < difrpos & difrpos < 24 & liftRight.getCurrentPosition() < liftpick+5 & liftRight.getCurrentPosition() > liftpick-5 & heil.getCurrentPosition() > -8 & heil.getCurrentPosition() < 8) {
                 grab = true;
                 given = true;
                 Actions.runBlocking(new SleepAction(w));

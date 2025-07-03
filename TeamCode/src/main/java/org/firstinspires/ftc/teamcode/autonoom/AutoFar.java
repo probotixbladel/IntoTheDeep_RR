@@ -46,7 +46,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 
 
-
+@Disabled
 @Autonomous(name = "AutoFar", group = "Autonomous")
 public final class AutoFar extends LinearOpMode {
     public class Lift {
